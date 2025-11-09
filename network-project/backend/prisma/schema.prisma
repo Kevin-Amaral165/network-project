@@ -1,0 +1,69 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"      // Use "prisma-client-js" para TypeScript
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  role      Role      @default(CUSTOMER)
+  createdAt DateTime  @default(now())
+  orders    Order[]   // Relação com pedidos
+}
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  phone     String?
+  orders    Order[]
+  createdAt DateTime  @default(now())
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  createdAt   DateTime  @default(now())
+  orders      OrderProduct[]
+}
+
+model Order {
+  id          Int           @id @default(autoincrement())
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  customerId  Int
+  status      OrderStatus   @default(PENDING)
+  createdAt   DateTime      @default(now())
+  products    OrderProduct[]
+}
+
+model OrderProduct {
+  id        Int      @id @default(autoincrement())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int      @default(1)
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
