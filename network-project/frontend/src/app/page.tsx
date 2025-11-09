@@ -1,13 +1,14 @@
-import React from 'react';
-import Navbar from '../components/navbar';
+"use client";
 
-const Home = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div>
-      <Navbar />
-      <main>{children}</main>
-    </div>
-  );
-};
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default Home;
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push("/login");
+  }, [router]);
+
+  return null;
+}

@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-dotenv.config(); // força o carregamento do .env
+dotenv.config();
 
 import { defineConfig, env } from "prisma/config";
 

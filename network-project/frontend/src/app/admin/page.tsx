@@ -1,14 +1,91 @@
-"use client"; // 👈 Adicione isso no topo
+"use client";
 
+import { useEffect, useState } from "react";
+import withAuth from "../../hooks/withAuth";
 import { Button } from "@/src/components/button";
 import { Table } from "@/src/components/table";
 import { Title } from "@/src/components/title";
 
-export default function AdminPage() {
-  const data = [
-    { id: 1, name: "Kevin Amaral", email: "kevin.amaral@example.com", phone: "123-456-7890" },
-    { id: 2, name: "Kevin Ramos", email: "kevin.ramos@example.com", phone: "098-765-4321" },
-  ];
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+function AdminPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/api/admin/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUsers(data);
+        } else {
+          setError("Failed to fetch users");
+        }
+      } catch (error) {
+        setError("An error occurred. Please try again.");
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleApprove = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/admin/users/${id}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setUsers(users.filter((user) => user.id !== id));
+      } else {
+        setError("Failed to approve user");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    }
+  };
+
+  const handleRecuse = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/api/admin/users/${id}/recuse`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setUsers(users.filter((user) => user.id !== id));
+      } else {
+        setError("Failed to recuse user");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    }
+  };
 
   const columns = [
     {
@@ -33,12 +110,18 @@ export default function AdminPage() {
       title: "Actions",
       key: "actions",
       align: "center" as const,
-      render: (_: any, record: any) => (
+      render: (_: any, record: User) => (
         <>
-          <Button className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded mr-2">
+          <Button
+            onClick={() => handleApprove(record.id)}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded mr-2"
+          >
             Approve
           </Button>
-          <Button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded">
+          <Button
+            onClick={() => handleRecuse(record.id)}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
+          >
             Recuse
           </Button>
         </>
@@ -56,10 +139,10 @@ export default function AdminPage() {
         >
           Admin Panel
         </Title>
-
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <Table
           columns={columns}
-          dataSource={data}
+          dataSource={users}
           className="table-testId"
           rowKey="id"
           pagination={false}
@@ -68,3 +151,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
+export default withAuth(AdminPage);
