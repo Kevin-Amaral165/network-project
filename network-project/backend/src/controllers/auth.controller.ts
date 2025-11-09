@@ -3,8 +3,8 @@ import { registerUser, loginUser } from '../services/auth.service';
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const user = await registerUser(req.body);
-    res.status(201).json(user);
+    const { user, token } = await registerUser(req.body);
+    res.status(201).json({ user, token }); // ← agora retorna o token junto
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

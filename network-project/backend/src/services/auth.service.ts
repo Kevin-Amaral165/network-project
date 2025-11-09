@@ -1,54 +1,65 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '../generated/prisma';
 import { User } from '../models/user.model';
 
-// In-memory user store
-const users: User[] = [];
+const prisma = new PrismaClient();
 
-// Create a default admin user synchronously
-const salt = bcrypt.genSaltSync(10);
-const hashedPassword = bcrypt.hashSync('adminpassword', salt);
-users.push({
-  id: 1,
-  username: 'admin',
-  password: hashedPassword,
-  role: 'admin'
-});
+// Registro de usuário
+export const registerUser = async (user: User): Promise<{ user: Omit<User, 'password'>; token: string }> => {
+  const existingUser = await prisma.user.findUnique({
+    where: { username: user.username },
+  });
 
-export const registerUser = async (user: User): Promise<Omit<User, 'password'>> => {
-  if (users.find(u => u.username === user.username)) {
+  if (existingUser) {
     throw new Error('User already exists');
   }
 
   const hashedPassword = await bcrypt.hash(user.password!, 10);
-  const newUser: User = {
-    id: users.length + 1,
-    username: user.username,
-    password: hashedPassword,
-    role: user.role || 'customer'
-  };
 
-  users.push(newUser);
+  const newUser = await prisma.user.create({
+    data: {
+      username: user.username,
+      email: user.email,
+      password: hashedPassword,
+      role: 'CUSTOMER',
+    },
+  });
+
+  // Gera o token JWT
+  const token = jwt.sign(
+    { id: newUser.id, role: newUser.role },
+    process.env.JWT_SECRET!,
+    { expiresIn: '1h' }
+  );
+
   const { password, ...userWithoutPassword } = newUser;
-  return userWithoutPassword;
+  return { user: userWithoutPassword, token };
 };
 
-export const loginUser = async (user: User): Promise<string> => {
-  const foundUser = users.find(u => u.username === user.username);
+// Login de usuário
+export const loginUser = async (username: string, password: string): Promise<{ user: Omit<User, 'password'>; token: string }> => {
+  const existingUser = await prisma.user.findUnique({
+    where: { username },
+  });
 
-  if (!foundUser) {
+  if (!existingUser) {
     throw new Error('User not found');
   }
 
-  const isPasswordValid = await bcrypt.compare(user.password!, foundUser.password!);
+  const isPasswordValid = await bcrypt.compare(password, existingUser.password);
 
   if (!isPasswordValid) {
     throw new Error('Invalid password');
   }
 
-  const token = jwt.sign({ id: foundUser.id, role: foundUser.role }, process.env.JWT_SECRET!, {
-    expiresIn: '1h'
-  });
+  // Gera o token JWT
+  const token = jwt.sign(
+    { id: existingUser.id, role: existingUser.role },
+    process.env.JWT_SECRET!,
+    { expiresIn: '1h' }
+  );
 
-  return token;
+  const { password: _, ...userWithoutPassword } = existingUser;
+  return { user: userWithoutPassword, token };
 };
