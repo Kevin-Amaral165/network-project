@@ -7,8 +7,14 @@ const prisma = new PrismaClient();
 
 // Registro de usuário
 export const registerUser = async (user: User): Promise<{ user: Omit<User, 'password'>; token: string }> => {
-  const existingUser = await prisma.user.findUnique({
-    where: { username: user.username },
+  // Verifica se já existe usuário com o mesmo username ou email
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { username: user.username },
+        { email: user.email },
+      ],
+    },
   });
 
   if (existingUser) {
@@ -38,15 +44,20 @@ export const registerUser = async (user: User): Promise<{ user: Omit<User, 'pass
 };
 
 // Login de usuário
-export const loginUser = async (username: string, password: string): Promise<{ user: Omit<User, 'password'>; token: string }> => {
+export const loginUser = async (
+  email: string,
+  password: string
+): Promise<{ user: Omit<User, 'password'>; token: string }> => {
+  // Busca usuário pelo email
   const existingUser = await prisma.user.findUnique({
-    where: { username },
+    where: { email }, // <-- apenas a string
   });
 
   if (!existingUser) {
     throw new Error('User not found');
   }
 
+  // Verifica senha
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);
 
   if (!isPasswordValid) {
