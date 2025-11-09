@@ -1,5 +1,10 @@
 import { Button as AntButton } from 'antd';
-import { ButtonProps } from './types';
+import { ReactNode } from 'react';
+
+interface ButtonProps {
+  className?: string;
+  children?: ReactNode;
+}
 
 export function Button({
     children,
