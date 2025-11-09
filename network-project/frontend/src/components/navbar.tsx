@@ -7,12 +7,18 @@ import { useUserStore } from "@/src/store/userStore";
 
 export function Navbar() {
   const router = useRouter();
-  const { user, logout } = useUserStore();
+  const { user, logout, loadFromStorage, hydrated } = useUserStore();
+
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
 
   const handleLogout = () => {
-    logout(); // limpa token e user do Zustand + localStorage
+    logout();
     router.push("/login");
   };
+
+  if (!hydrated) return null;
 
   return (
     <nav className="bg-gray-800 p-4">
@@ -22,18 +28,12 @@ export function Navbar() {
           {user ? (
             <>
               <span className="text-white">Olá, {user.username}</span>
-              <Button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
+              <Button onClick={handleLogout} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
                 Logout
               </Button>
             </>
           ) : (
-            <Button
-              onClick={() => router.push("/login")}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
+            <Button onClick={() => router.push("/login")} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Login
             </Button>
           )}

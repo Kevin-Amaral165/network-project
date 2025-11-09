@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/src/components/input";
 import { Button } from "@/src/components/button";
@@ -13,7 +13,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const setUser = useUserStore((state) => state.setUser);
+
+  const { user, setUser, hydrated, loadFromStorage } = useUserStore();
+
+  // Carrega user do localStorage ao montar o componente
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
+
+  // Redireciona se já estiver logado
+  useEffect(() => {
+    if (hydrated && user) {
+      router.push("/");
+    }
+  }, [hydrated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +43,8 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setUser(data.user, data.token); // salva no Zustand e localStorage
-        router.push("/"); // redireciona para a HomePage
+        setUser(data.user, data.token);
+        router.push("/");
       } else {
         setError(data.error || "Email ou senha inválidos");
       }
@@ -42,6 +55,8 @@ export default function LoginPage() {
     }
   };
 
+  if (!hydrated || (hydrated && user)) return null;
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -51,15 +66,39 @@ export default function LoginPage() {
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           {error && <p className="text-red-500 text-center">{error}</p>}
           <div>
-            <label htmlFor="email" className="block text-gray-700 font-bold mb-2">Email</label>
-            <Input id="email" type="email" placeholder="Digite seu email" className="w-full" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Digite seu email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full"
+            />
           </div>
           <div>
-            <label htmlFor="password" className="block text-gray-700 font-bold mb-2">Senha</label>
-            <Input id="password" type="password" placeholder="Digite sua senha" className="w-full" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <label htmlFor="password" className="block text-gray-700 font-bold mb-2">
+              Senha
+            </label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Digite sua senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full"
+            />
           </div>
           <div className="flex items-center justify-center mt-4">
-            <Button type="primary" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" disabled={loading}>
+            <Button
+              type="primary"
+              disabled={loading}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
               {loading ? "Entrando..." : "Login"}
             </Button>
           </div>

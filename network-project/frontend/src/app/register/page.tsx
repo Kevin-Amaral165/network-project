@@ -106,6 +106,7 @@ export default function RegisterPage() {
           <div className="flex items-center justify-center mt-4">
             <Button
               type="primary"
+              htmlType="submit"
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Registrar
