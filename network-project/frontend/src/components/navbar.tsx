@@ -18,7 +18,7 @@ export function Navbar() {
     router.push("/login");
   };
 
-  if (!hydrated) return null;
+  if (!hydrated) return null; // espera carregar o Zustand
 
   return (
     <nav className="bg-gray-800 p-4">

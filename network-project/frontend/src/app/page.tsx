@@ -15,7 +15,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (hydrated && !user) {
-      router.push("/login");
+      router.push("/login"); // só redireciona depois de carregar Zustand
     }
   }, [hydrated, user, router]);
 
