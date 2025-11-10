@@ -1,8 +1,7 @@
 // prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-js"      // Use "prisma-client-js" para TypeScript
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -17,34 +16,22 @@ model User {
   password  String
   role      Role      @default(CUSTOMER)
   createdAt DateTime  @default(now())
-  orders    Order[]   // Relação com pedidos
 }
 
-model Product {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  createdAt   DateTime  @default(now())
-  orders      OrderProduct[]
+model MemberRequest {
+  id        Int                  @id @default(autoincrement())
+  name      String
+  email     String
+  company   String
+  reason    String
+  status    MemberRequestStatus  @default(PENDING)
+  createdAt DateTime             @default(now())
 }
 
-model Order {
-  id          Int           @id @default(autoincrement())
-  user        User          @relation(fields: [userId], references: [id])
-  userId      Int
-  status      OrderStatus   @default(PENDING)
-  createdAt   DateTime      @default(now())
-  products    OrderProduct[]
-}
-
-model OrderProduct {
-  id        Int      @id @default(autoincrement())
-  order     Order    @relation(fields: [orderId], references: [id])
-  orderId   Int
-  product   Product  @relation(fields: [productId], references: [id])
-  productId Int
-  quantity  Int      @default(1)
+enum MemberRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum Role {

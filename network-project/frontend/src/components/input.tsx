@@ -1,26 +1,27 @@
 "use client";
 
+// Libraries
 import { Input as AntInput } from "antd";
 import type { InputProps as AntInputProps } from "antd";
 import clsx from "clsx";
 
 export interface InputProps extends AntInputProps {
+  className?: string;
+  disabled?: boolean;
   label?: string;
   placeholder?: string;
-  className?: string;
-  size?: "small" | "middle" | "large";
   readOnly?: boolean;
-  disabled?: boolean;
+  size?: "small" | "middle" | "large";
 }
 
 export function Input({
-  label,
-  placeholder,
   className,
-  size = "middle",
-  readOnly = false,
   disabled = false,
   id,
+  label,
+  placeholder,
+  readOnly = false,
+  size = "middle",
   ...props
 }: InputProps) {
   return (

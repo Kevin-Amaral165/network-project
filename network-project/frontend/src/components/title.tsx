@@ -1,20 +1,23 @@
+// Core
 import { ReactNode } from "react";
+
+// Libraries
 import clsx from "clsx";
 
 interface TitleProps {
   children: ReactNode;
+  className?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   weight?: "normal" | "medium" | "bold";
-  className?: string;
 }
 
 export function Title({
   children,
+  className,
   size = "lg",
   weight = "bold",
-  className,
 }: TitleProps) {
-  const textSize = {
+  const textSize: string = {
     xs: "text-xs",
     sm: "text-sm",
     md: "text-base",
@@ -23,7 +26,7 @@ export function Title({
     "2xl": "text-2xl",
   }[size];
 
-  const fontWeight = {
+  const fontWeight: string = {
     normal: "font-normal",
     medium: "font-medium",
     bold: "font-bold",

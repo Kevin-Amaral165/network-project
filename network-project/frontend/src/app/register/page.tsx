@@ -5,44 +5,44 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/src/components/input";
 import { Button } from "@/src/components/button";
 import { Title } from "@/src/components/title";
+import { useUserStore } from "@/src/store/userStore";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
+    setLoading(true);
 
     try {
       const response = await fetch("http://localhost:3001/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Salva o token no localStorage
-        localStorage.setItem("token", data.token);
+        // Salva user + token no Zustand
+        setUser(data.user, data.token);
 
-        setSuccess("Registro realizado com sucesso! Redirecionando...");
-        setTimeout(() => {
-          router.push("/dashboard"); // página após login
-        }, 2000);
+        // Redireciona para home após registro
+        router.push("/");
       } else {
-        setError(data.error || "Falha no registro");
+        setError(data.error || "Erro ao registrar usuário");
       }
-    } catch (error) {
-      setError("Ocorreu um erro durante o registro");
+    } catch (err: any) {
+      setError(err.message || "Erro de conexão com o servidor");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,11 +55,13 @@ export default function RegisterPage() {
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           {error && <p className="text-red-500 text-center">{error}</p>}
-          {success && <p className="text-green-500 text-center">{success}</p>}
 
           {/* Username */}
           <div>
-            <label htmlFor="username" className="block text-gray-700 font-bold mb-2">
+            <label
+              htmlFor="username"
+              className="block text-gray-700 font-bold mb-2"
+            >
               Nome de usuário
             </label>
             <Input
@@ -69,12 +71,16 @@ export default function RegisterPage() {
               className="w-full"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              required
             />
           </div>
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
+            <label
+              htmlFor="email"
+              className="block text-gray-700 font-bold mb-2"
+            >
               Email
             </label>
             <Input
@@ -84,12 +90,16 @@ export default function RegisterPage() {
               className="w-full"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
           {/* Senha */}
           <div>
-            <label htmlFor="password" className="block text-gray-700 font-bold mb-2">
+            <label
+              htmlFor="password"
+              className="block text-gray-700 font-bold mb-2"
+            >
               Senha
             </label>
             <Input
@@ -99,17 +109,29 @@ export default function RegisterPage() {
               className="w-full"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          {/* Botão */}
-          <div className="flex items-center justify-center mt-4">
+          {/* Botões */}
+          <div className="flex flex-col items-center justify-center mt-4 gap-3">
+            {/* Botão principal */}
             <Button
               type="primary"
               htmlType="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
+              disabled={loading}
             >
-              Registrar
+              {loading ? "Registrando..." : "Registrar"}
+            </Button>
+
+            {/* Voltar para login */}
+            <Button
+              type="secondary"
+              onClick={() => router.push("/login")}
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-full"
+            >
+              Voltar para Login
             </Button>
           </div>
         </form>

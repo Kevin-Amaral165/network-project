@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -31,8 +30,8 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setUser(data.user, data.token); // salva no Zustand e localStorage
-        router.push("/"); // redireciona para a HomePage
+        setUser(data.user, data.token);
+        router.push("/");
       } else {
         setError(data.error || "Email ou senha inválidos");
       }
@@ -49,19 +48,64 @@ export default function LoginPage() {
         <Title size="2xl" weight="bold" className="text-center mb-6">
           Login
         </Title>
+
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           {error && <p className="text-red-500 text-center">{error}</p>}
+
           <div>
-            <label htmlFor="email" className="block text-gray-700 font-bold mb-2">Email</label>
-            <Input id="email" type="email" placeholder="Digite seu email" className="w-full" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label
+              htmlFor="email"
+              className="block text-gray-700 font-bold mb-2"
+            >
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Digite seu email"
+              className="w-full"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
+
           <div>
-            <label htmlFor="password" className="block text-gray-700 font-bold mb-2">Senha</label>
-            <Input id="password" type="password" placeholder="Digite sua senha" className="w-full" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <label
+              htmlFor="password"
+              className="block text-gray-700 font-bold mb-2"
+            >
+              Senha
+            </label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Digite sua senha"
+              className="w-full"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
-          <div className="flex items-center justify-center mt-4">
-            <Button type="primary" htmlType="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" disabled={loading}>
+
+          <div className="flex flex-col items-center justify-center mt-4 gap-3">
+            {/* Botão principal de login */}
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+              disabled={loading}
+            >
               {loading ? "Entrando..." : "Login"}
+            </Button>
+
+            {/* Novo botão de registro */}
+            <Button
+              type="secondary"
+              onClick={() => router.push("/register")}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
+            >
+              Registrar
             </Button>
           </div>
         </form>

@@ -1,15 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+// Core
+import { useEffect, useState } from "react";
+
+// Libraries
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/src/store/userStore";
-import { Navbar } from "@/src/components/navbar";
-import { Button } from "@/src/components/button";
+
+// Store
+import { useUserStore } from "../store/userStore";
+
+// App Pages
+import { AdminDashboard } from "../app/admin/page";
+import { MemberRequestForm } from "../app/form/page";
+
+// Components
+import { Button } from "../components/button";
+import { Navbar } from "../components/navbar";
+import { Title } from "../components/title";
 
 export default function HomePage() {
-  const router = useRouter();
-  const { user, loadFromStorage, logout, hydrated } = useUserStore();
+  // Router
+  const router: AppRouterInstance = useRouter();
 
+  // Store
+  const {
+    user,
+    loadFromStorage,
+    logout,
+    hydrated,
+  } = useUserStore();
+
+  // State
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
+
+  // Effects
   useEffect(() => {
     loadFromStorage();
   }, [loadFromStorage]);
@@ -29,11 +55,19 @@ export default function HomePage() {
         actions={
           <>
             <Button
-              onClick={() => router.push("/perfil")}
+              onClick={() => setIsModalVisible(true)}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
-              Perfil
+              Form
             </Button>
+            {user.role === "ADMIN" && (
+              <Button
+                onClick={() => setIsAdminModalVisible(true)}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Admin
+              </Button>
+            )}
             <Button
               onClick={() => {
                 logout();
@@ -48,10 +82,19 @@ export default function HomePage() {
       />
 
       <div className="p-8">
-        <h1 className="text-3xl font-bold">
+        <Title className="text-3xl font-bold">
           Bem-vindo à Dashboard, {user.username}!
-        </h1>
+        </Title>
       </div>
+
+      <MemberRequestForm
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+      />
+      <AdminDashboard
+        visible={isAdminModalVisible}
+        onClose={() => setIsAdminModalVisible(false)}
+      />
     </>
   );
 }

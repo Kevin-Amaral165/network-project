@@ -1,9 +1,16 @@
+// Core
 import { Router } from "express";
-import { getUsers } from "../controllers/user.controller";
-import { protect } from "../middleware/auth.middleware";
 
-const router = Router();
+// Controllers
+import { getUsers, createUser } from "../controllers/user.controller";
 
-router.get("/", protect, getUsers);
+// Middleware
+import { protect, verifyAdmin } from "../middleware/auth.middleware";
+
+const router: Router = Router();
+
+// Routes
+router.get("/", protect, verifyAdmin, getUsers);
+router.post("/", protect, verifyAdmin, createUser);
 
 export default router;
