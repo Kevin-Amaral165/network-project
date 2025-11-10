@@ -1,26 +1,50 @@
-import { Request, Response } from 'express';
-import { registerUser, loginUser } from '../services/auth.service';
+import { PrismaClient } from '@prisma/client';
+import { AuthResponse } from '../types/auth';
+import { UserResponse } from '../types/user';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-export const register = async (req: Request, res: Response) => {
-  try {
-    const { user, token } = await registerUser(req.body);
-    res.status(201).json({ user, token });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || 'default_secret';
+
+const generateToken = (userId: number): string =>
+  jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1h' });
+
+const mapUser = (user: UserResponse): UserResponse => ({
+  id: user.id,
+  username: user.username,
+  email: user.email,
+  role: user.role,
+  createdAt: user.createdAt,
+});
+
+export const register = async (
+  data: { username: string; email: string; password: string }
+): Promise<AuthResponse> => {
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+
+  const user: UserResponse = await prisma.user.create({
+    data: { username: data.username, email: data.email, password: hashedPassword },
+  });
+
+  return {
+    user: mapUser(user),
+    token: generateToken(user.id),
+  };
 };
 
-export const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
+export const login = async (
+  email: string,
+  password: string
+): Promise<AuthResponse> => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('User not found');
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) throw new Error('Invalid credentials');
 
-    const { user, token } = await loginUser(email, password);
-    res.status(200).json({ user, token });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
+  return {
+    user: mapUser(user),
+    token: generateToken(user.id),
+  };
 };
