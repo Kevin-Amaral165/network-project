@@ -1,46 +1,74 @@
-import { Input } from "../../components/input";
+import { Modal, Form, Input, Button } from "antd";
+import { useForm } from "antd/lib/form/Form";
+import axios from "axios";
 
-export default function FormPage() {
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Intention Form</h1>
-
-        <form className="space-y-4">
-          <Input
-            id="name"
-            name="name"
-            type="text"
-            label="Name"
-            placeholder="Enter your name"
-          />
-
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="Enter your email"
-          />
-
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            label="Phone"
-            placeholder="Enter your phone number"
-          />
-
-          <div className="flex items-center justify-between">
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+interface MemberRequestFormProps {
+  visible: boolean;
+  onClose: () => void;
 }
+
+export const MemberRequestForm = ({
+  visible,
+  onClose,
+}: MemberRequestFormProps) => {
+  const [form] = useForm();
+
+  const handleSubmit = async (values: any) => {
+    try {
+      await axios.post("http://localhost:3001/api/member-requests", values);
+      onClose();
+    } catch (error) {
+      console.error("Error submitting form", error);
+    }
+  };
+
+  return (
+    <Modal
+      title="Member Request Form"
+      visible={visible}
+      onCancel={onClose}
+      footer={null}
+    >
+      <Form form={form} onFinish={handleSubmit} layout="vertical">
+        <Form.Item
+          name="name"
+          label="Nome"
+          rules={[{ required: true, message: "Please enter your name" }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="email"
+          label="Email"
+          rules={[{ required: true, message: "Please enter your email" }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="company"
+          label="Empresa"
+          rules={[{ required: true, message: "Please enter your company" }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="reason"
+          label="Por que você quer participar?"
+          rules={[
+            {
+              required: true,
+              message: "Please tell us why you want to join",
+            },
+          ]}
+        >
+          <Input.TextArea />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};

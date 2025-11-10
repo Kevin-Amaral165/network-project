@@ -1,50 +1,55 @@
-import { PrismaClient } from '@prisma/client';
-import { AuthResponse } from '../types/auth';
-import { UserResponse } from '../types/user';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+// Core
+import { Request, Response } from 'express';
 
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'default_secret';
+// Services
+import { registerUser, loginUser } from '../services/auth.service';
 
-const generateToken = (userId: number): string =>
-  jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1h' });
+// Models
+import { User } from '../models/user.model';
 
-const mapUser = (user: UserResponse): UserResponse => ({
-  id: user.id,
-  username: user.username,
-  email: user.email,
-  role: user.role,
-  createdAt: user.createdAt,
-});
 
-export const register = async (
-  data: { username: string; email: string; password: string }
-): Promise<AuthResponse> => {
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+/** Handles user registration */
+export const register = async (req: Request<{}, {}, Partial<User>>, res: Response) => {
+  try {
+    const { username, email, password } = req.body;
 
-  const user: UserResponse = await prisma.user.create({
-    data: { username: data.username, email: data.email, password: hashedPassword },
-  });
+    // Validate required fields
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email, and password are required' });
+    }
 
-  return {
-    user: mapUser(user),
-    token: generateToken(user.id),
-  };
+    // Call service to create user and generate token
+    const { user, token } = await registerUser({ username, email, password });
+
+    // Return created user and JWT
+    return res.status(201).json({ user, token });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(500).json({ error: 'Unknown error occurred' });
+  }
 };
 
-export const login = async (
-  email: string,
-  password: string
-): Promise<AuthResponse> => {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error('User not found');
+/** Handles user login */
+export const login = async (req: Request<{}, {}, { email?: string; password?: string }>, res: Response) => {
+  try {
+    const { email, password } = req.body;
 
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) throw new Error('Invalid credentials');
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
 
-  return {
-    user: mapUser(user),
-    token: generateToken(user.id),
-  };
+    // Call service to authenticate user and generate token
+    const { user, token } = await loginUser(email, password);
+
+    // Return authenticated user and JWT
+    return res.status(200).json({ user, token });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(500).json({ error: 'Unknown error occurred' });
+  }
 };

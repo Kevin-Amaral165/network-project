@@ -1,4 +1,5 @@
-import { UserResponse } from './user';
+// Models
+import { User } from '../models/user.model';
 
 export interface RegisterRequestBody {
   username: string;
@@ -12,6 +13,6 @@ export interface LoginRequestBody {
 }
 
 export interface AuthResponse {
-  user: UserResponse;
+  user: User;
   token: string;
 }

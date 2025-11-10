@@ -1,43 +1,51 @@
+// Core
 import { Request, Response, NextFunction } from 'express';
+
+// Libraries
 import jwt from 'jsonwebtoken';
 
-// Extend the Express Request interface to include the user property
+// Define JWT payload type
+interface JwtPayload {
+  id: number;
+  email: string;
+  role: 'ADMIN' | 'CUSTOMER';
+  iat: number;
+  exp: number;
+}
+
+// Extend Express Request to include typed user
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: JwtPayload;
     }
   }
 }
 
-export const protect = (req: Request, res: Response, next: NextFunction) => {
-  let token;
+/** Protect routes by validating JWT token */
+export const protect = (req: Request, res: Response, next: NextFunction): Response | void => {
+  const authHeader = req.headers.authorization;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (authHeader?.startsWith('Bearer')) {
+    const token = authHeader.split(' ')[1];
+
     try {
-      // Get token from header
-      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-      
-      // Attach user to the request
       req.user = decoded;
-      next();
+      return next();
     } catch (error) {
-      res.status(401).json({ error: 'Not authorized, token failed' });
+      return res.status(401).json({ error: 'Not authorized, token failed' });
     }
   }
 
-  if (!token) {
-    res.status(401).json({ error: 'Not authorized, no token' });
-  }
+  return res.status(401).json({ error: 'Not authorized, no token' });
 };
 
-export const verifyAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === 'ADMIN') {
-    next();
-  } else {
-    res.status(401).json({ error: 'Not authorized as an admin' });
+/** Middleware to check if the authenticated user is an admin */
+export const verifyAdmin = (req: Request, res: Response, next: NextFunction): Response | void => {
+  if (req.user?.role === 'ADMIN') {
+    return next();
   }
+  return res.status(401).json({ error: 'Not authorized as an admin' });
 };

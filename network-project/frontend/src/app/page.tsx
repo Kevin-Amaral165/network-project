@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/src/store/userStore";
 import { Navbar } from "@/src/components/navbar";
 import { Button } from "@/src/components/button";
+import { MemberRequestForm } from "../app/form/page";
+import { AdminDashboard } from "../app/admin/page";
 
 export default function HomePage() {
   const router = useRouter();
   const { user, loadFromStorage, logout, hydrated } = useUserStore();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
 
   useEffect(() => {
     loadFromStorage();
@@ -29,11 +33,19 @@ export default function HomePage() {
         actions={
           <>
             <Button
-              onClick={() => router.push("/perfil")}
+              onClick={() => setIsModalVisible(true)}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
-              Perfil
+              Form
             </Button>
+            {user.role === "ADMIN" && (
+              <Button
+                onClick={() => setIsAdminModalVisible(true)}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Admin
+              </Button>
+            )}
             <Button
               onClick={() => {
                 logout();
@@ -52,6 +64,15 @@ export default function HomePage() {
           Bem-vindo à Dashboard, {user.username}!
         </h1>
       </div>
+
+      <MemberRequestForm
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+      />
+      <AdminDashboard
+        visible={isAdminModalVisible}
+        onClose={() => setIsAdminModalVisible(false)}
+      />
     </>
   );
 }

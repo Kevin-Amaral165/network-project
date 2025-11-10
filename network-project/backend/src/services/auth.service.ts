@@ -1,19 +1,31 @@
+// Core
+import { PrismaClient } from '../generated/prisma';
+
+// Libraries
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '../generated/prisma';
+
+// 🧩 Models
 import { User } from '../models/user.model';
 
-const prisma = new PrismaClient();
 
-// Registro de usuário
-export const registerUser = async (user: User): Promise<{ user: Omit<User, 'password'>; token: string }> => {
-  // Verifica se já existe usuário com o mesmo username ou email
+const prisma: PrismaClient = new PrismaClient();
+
+/** JWT secret key */
+const JWT_SECRET: string = process.env.JWT_SECRET || 'default_secret';
+
+/** Generate JWT token for a user */
+const generateToken = (userId: number, role: string): string => {
+  return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: '1h' });
+};
+
+/** Register a new user */
+export const registerUser = async (
+  user: User
+): Promise<{ user: Omit<User, 'password'>; token: string }> => {
   const existingUser = await prisma.user.findFirst({
     where: {
-      OR: [
-        { username: user.username },
-        { email: user.email },
-      ],
+      OR: [{ username: user.username }, { email: user.email }],
     },
   });
 
@@ -21,7 +33,7 @@ export const registerUser = async (user: User): Promise<{ user: Omit<User, 'pass
     throw new Error('User already exists');
   }
 
-  const hashedPassword = await bcrypt.hash(user.password!, 10);
+  const hashedPassword: string = await bcrypt.hash(user.password!, 10);
 
   const newUser = await prisma.user.create({
     data: {
@@ -32,45 +44,32 @@ export const registerUser = async (user: User): Promise<{ user: Omit<User, 'pass
     },
   });
 
-  // Gera o token JWT
-  const token = jwt.sign(
-    { id: newUser.id, role: newUser.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: '1h' }
-  );
+  const token: string = generateToken(newUser.id, newUser.role);
 
   const { password, ...userWithoutPassword } = newUser;
   return { user: userWithoutPassword, token };
 };
 
-// Login de usuário
+/** Login an existing user */
 export const loginUser = async (
   email: string,
   password: string
 ): Promise<{ user: Omit<User, 'password'>; token: string }> => {
-  // Busca usuário pelo email
-  const existingUser = await prisma.user.findUnique({
-    where: { email }, // <-- apenas a string
-  });
+  const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (!existingUser) {
     throw new Error('User not found');
   }
 
-  // Verifica senha
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);
 
   if (!isPasswordValid) {
     throw new Error('Invalid password');
   }
 
-  // Gera o token JWT
-  const token = jwt.sign(
-    { id: existingUser.id, role: existingUser.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: '1h' }
-  );
+  const token: string = generateToken(existingUser.id, existingUser.role);
 
+  // Exclude password from returned user object
   const { password: _, ...userWithoutPassword } = existingUser;
   return { user: userWithoutPassword, token };
 };

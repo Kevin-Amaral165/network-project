@@ -1,18 +1,19 @@
+// Core
 import { Router } from "express";
-import { protect, verifyAdmin } from "../middleware/auth.middleware";
+
+// Controllers
 import {
   createMemberRequest,
   getAllMemberRequests,
   updateMemberRequestStatus,
 } from "../controllers/member.controller";
 
-const router = Router();
+// Middleware
+import { protect, verifyAdmin } from "../middleware/auth.middleware";
 
-console.log("protect:", typeof protect);
-console.log("verifyAdmin:", typeof verifyAdmin);
-console.log("getAllMemberRequests:", typeof getAllMemberRequests);
+const router: Router = Router();
 
-
+// Routes
 router.post("/", createMemberRequest);
 router.get("/", protect, verifyAdmin, getAllMemberRequests);
 router.put("/:id", protect, verifyAdmin, updateMemberRequestStatus);

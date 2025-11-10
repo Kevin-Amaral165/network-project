@@ -1,19 +1,17 @@
-// services/member.service.ts
+// Libraries
 import { PrismaClient } from "../generated/prisma";
+
+// Types
+import { CreateMemberRequestBody, MemberRequestStatus } from "../types/member";
 
 const prisma = new PrismaClient();
 
-export const createMemberRequest = async (data: {
-  name: string;
-  email: string;
-  company: string;
-  reason: string;
-}) => {
-  // 🔒 Verifica se já existe uma solicitação com o mesmo e-mail pendente
+/** Create a new member request */
+export const createMemberRequest = async (data: CreateMemberRequestBody): Promise<CreateMemberRequestBody> => {
   const existingRequest = await prisma.memberRequest.findFirst({
     where: {
       email: data.email,
-      status: "PENDING",
+      status: MemberRequestStatus.PENDING,
     },
   });
 
@@ -24,14 +22,16 @@ export const createMemberRequest = async (data: {
   return await prisma.memberRequest.create({ data });
 };
 
-export const getAllMemberRequests = async () => {
+/** Get all member requests */
+export const getAllMemberRequests = async (): Promise<CreateMemberRequestBody[]> => {
   return await prisma.memberRequest.findMany();
 };
 
+/** Update the status of a member request */
 export const updateMemberRequestStatus = async (
   id: number,
-  status: "PENDING" | "APPROVED" | "REJECTED"
-) => {
+  status: MemberRequestStatus
+): Promise<CreateMemberRequestBody> => {
   return await prisma.memberRequest.update({
     where: { id },
     data: { status },

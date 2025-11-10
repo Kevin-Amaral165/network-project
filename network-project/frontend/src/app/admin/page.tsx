@@ -1,155 +1,143 @@
 "use client";
 
+import { Modal, Table, Button } from "antd";
+import axios from "axios";
 import { useEffect, useState } from "react";
-import withAuth from "../../hooks/withAuth";
-import { Button } from "@/src/components/button";
-import { Table } from "@/src/components/table";
-import { Title } from "@/src/components/title";
+import { useUserStore } from "@/src/store/userStore";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
+interface AdminDashboardProps {
+  visible: boolean;
+  onClose: () => void;
 }
 
-function AdminPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState("");
+export const AdminDashboard = ({ visible, onClose }: AdminDashboardProps) => {
+  const [memberRequests, setMemberRequests] = useState([]);
+  const { user } = useUserStore();
+
+  const fetchMemberRequests = async () => {
+    try {
+      const { data } = await axios.get(
+        "http://localhost:3001/api/member-requests",
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+      setMemberRequests(data);
+    } catch (error) {
+      console.error("Error fetching member requests", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3001/api/admin/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUsers(data);
-        } else {
-          setError("Failed to fetch users");
-        }
-      } catch (error) {
-        setError("An error occurred. Please try again.");
-      }
-    };
-
-    fetchUsers();
-  }, []);
+    if (visible) {
+      fetchMemberRequests();
+    }
+  }, [visible]);
 
   const handleApprove = async (id: number) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3001/api/admin/users/${id}/approve`,
+      await axios.put(
+        `http://localhost:3001/api/member-requests/${id}`,
+        { status: "APPROVED" },
         {
-          method: "PUT",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${user?.token}`,
           },
         }
       );
-
-      if (response.ok) {
-        setUsers(users.filter((user) => user.id !== id));
-      } else {
-        setError("Failed to approve user");
-      }
+      fetchMemberRequests();
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      console.error("Error approving member request", error);
     }
   };
 
-  const handleRecuse = async (id: number) => {
+  const handleReject = async (id: number) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3001/api/admin/users/${id}/recuse`,
+      await axios.put(
+        `http://localhost:3001/api/member-requests/${id}`,
+        { status: "REJECTED" },
         {
-          method: "PUT",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${user?.token}`,
           },
         }
       );
-
-      if (response.ok) {
-        setUsers(users.filter((user) => user.id !== id));
-      } else {
-        setError("Failed to recuse user");
-      }
+      fetchMemberRequests();
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      console.error("Error rejecting member request", error);
     }
   };
 
-  const columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      align: "center" as const,
+const columns = [
+  {
+    title: "Name",
+    dataIndex: "name",
+    key: "name",
+  },
+  {
+    title: "Email",
+    dataIndex: "email",
+    key: "email",
+  },
+  {
+    title: "Company",
+    dataIndex: "company",
+    key: "company",
+  },
+  {
+    title: "Reason",
+    dataIndex: "reason",
+    key: "reason",
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    render: (status: string) => {
+      if (status === "APPROVED") return <span style={{ color: "green" }}>Aprovado</span>;
+      if (status === "REJECTED") return <span style={{ color: "red" }}>Rejeitado</span>;
+      return <span style={{ color: "orange" }}>Pendente</span>;
     },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-      align: "center" as const,
-    },
-    {
-      title: "Phone",
-      dataIndex: "phone",
-      key: "phone",
-      align: "center" as const,
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      align: "center" as const,
-      render: (_: any, record: User) => (
-        <>
-          <Button
-            onClick={() => handleApprove(record.id)}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded mr-2"
-          >
-            Approve
+  },
+  {
+    title: "Actions",
+    key: "actions",
+    render: (_: any, record: any) => {
+      if (record.status !== "PENDING") {
+        return <span>-</span>;
+      }
+
+      return (
+        <span>
+          <Button type="primary" onClick={() => handleApprove(record.id)}>
+            Aprovar
           </Button>
           <Button
-            onClick={() => handleRecuse(record.id)}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
+            type="primary"
+            danger
+            onClick={() => handleReject(record.id)}
+            style={{ marginLeft: 8 }}
           >
-            Recuse
+            Rejeitar
           </Button>
-        </>
-      ),
+        </span>
+      );
     },
-  ];
+  },
+];
+
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full">
-        <Title
-          size="2xl"
-          weight="bold"
-          className="mb-6 text-center text-gray-800"
-        >
-          Admin Panel
-        </Title>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <Table
-          columns={columns}
-          dataSource={users}
-          className="table-testId"
-          rowKey="id"
-          pagination={false}
-        />
-      </div>
-    </div>
+    <Modal
+      title="Admin Dashboard"
+      visible={visible}
+      onCancel={onClose}
+      footer={null}
+      width={1000}
+    >
+      <Table dataSource={memberRequests} columns={columns} rowKey="id" />
+    </Modal>
   );
-}
-
-export default withAuth(AdminPage);
+};
