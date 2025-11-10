@@ -1,11 +1,14 @@
-import { Button as AntButton } from 'antd';
+// Core
 import { ReactNode, MouseEventHandler } from 'react';
+
+// Libraries
+import { Button as AntButton } from 'antd';
 
 interface ButtonProps {
   children?: ReactNode;
   className?: string;
-  type?: 'primary' | 'default' | 'dashed' | 'text' | 'link';  // estilo visual
-  htmlType?: 'button' | 'submit' | 'reset';                   // tipo HTML do botão
+  type?: 'primary' | 'default' | 'dashed' | 'text' | 'link';
+  htmlType?: 'button' | 'submit' | 'reset';
   loading?: boolean;
   disabled?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
@@ -14,20 +17,20 @@ interface ButtonProps {
 export function Button({
   children,
   className,
-  type = 'default',
+  disabled = false,
   htmlType = 'button',
   loading = false,
-  disabled = false,
   onClick,
+  type = 'default',
 }: ButtonProps) {
   return (
     <AntButton
       className={className}
-      type={type}       // estilo do botão (cor)
-      htmlType={htmlType}  // tipo do botão (submit, button, reset)
-      loading={loading}
       disabled={disabled}
+      htmlType={htmlType}
+      loading={loading}
       onClick={onClick}
+      type={type}
     >
       {children}
     </AntButton>

@@ -1,11 +1,12 @@
-import { create } from "zustand";
+// Libraries
+import { create, StoreApi, UseBoundStore } from "zustand";
 
 interface User {
   id: number;
   username: string;
   email: string;
   role: string;
-  token?: string; // ✅ adicionamos o token dentro do objeto user
+  token?: string;
 }
 
 interface UserState {
@@ -16,26 +17,27 @@ interface UserState {
   loadFromStorage: () => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+/** Zustand store for user authentication and state management */
+export const useUserStore: UseBoundStore<StoreApi<UserState>> = create<UserState>((set) => ({
   user: null,
   hydrated: false,
 
-  // ✅ Ao setar o usuário, também adiciona o token dentro do próprio objeto user
+  // Set user and persist to localStorage
   setUser: (user, token) => {
-    const userWithToken = { ...user, token };
+    const userWithToken: User = { ...user, token };
     localStorage.setItem("user", JSON.stringify(userWithToken));
     set({ user: userWithToken });
   },
 
-  // ✅ Remove tudo do localStorage ao sair
+  // Logout the user and clear from localStorage
   logout: () => {
     localStorage.removeItem("user");
     set({ user: null });
   },
 
-  // ✅ Carrega usuário do localStorage ao iniciar o app
+  // Load user from localStorage on app start
   loadFromStorage: () => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser: string | null = localStorage.getItem("user");
     if (storedUser) {
       set({ user: JSON.parse(storedUser), hydrated: true });
     } else {

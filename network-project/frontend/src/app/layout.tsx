@@ -1,13 +1,17 @@
+// Core
 import type { Metadata } from "next";
+
+// Libraries
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextFontWithVariable } from "next/dist/compiled/@next/font";
 import "./globals.css";
 
-const geistSans = Geist({
+const geistSans: NextFontWithVariable = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono: NextFontWithVariable = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });

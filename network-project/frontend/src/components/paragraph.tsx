@@ -1,27 +1,30 @@
+// Core
 import { ReactNode } from "react";
+
+// Libraries
 import clsx from "clsx";
 
 interface ParagraphProps {
   children: ReactNode;
+  className?: string;
   size?: "xs" | "sm" | "md" | "lg";
   weight?: "normal" | "medium" | "bold";
-  className?: string;
 }
 
 export function Paragraph({
   children,
+  className,
   size = "md",
   weight = "normal",
-  className,
 }: ParagraphProps) {
-  const textSize = {
+  const textSize: string = {
     xs: "text-xs",
     sm: "text-sm",
     md: "text-base",
     lg: "text-lg",
   }[size];
 
-  const fontWeight = {
+  const fontWeight: string = {
     normal: "font-normal",
     medium: "font-medium",
     bold: "font-bold",

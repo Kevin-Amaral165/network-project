@@ -1,14 +1,14 @@
 "use client";
 
+// Core
 import { ReactNode } from "react";
-import { Button } from "./button";
 
 interface NavbarProps {
+  actions: ReactNode;
   title?: string;
-  actions?: ReactNode;
 }
 
-export function Navbar({ title = "MyApp", actions }: NavbarProps) {
+export function Navbar({ title, actions }: NavbarProps) {
   return (
     <nav className="bg-gray-800 p-4">
       <div className="container mx-auto flex justify-between items-center">
