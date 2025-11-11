@@ -24,13 +24,13 @@ declare global {
 
 /** Protect routes by validating JWT token */
 export const protect = (req: Request, res: Response, next: NextFunction): Response | void => {
-  const authHeader = req.headers.authorization;
+  const authHeader: string | undefined = req.headers.authorization;
 
   if (authHeader?.startsWith('Bearer')) {
     const token = authHeader.split(' ')[1];
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      const decoded: JwtPayload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
       req.user = decoded;
       return next();

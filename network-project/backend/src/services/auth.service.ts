@@ -1,75 +1,77 @@
-// Core
-import { PrismaClient } from '../generated/prisma';
-
 // Libraries
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { PrismaClient } from "../generated/prisma";
 
-// 🧩 Models
-import { User } from '../models/user.model';
+// Models
+import { User } from "../models/user.model";
 
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
-const prisma: PrismaClient = new PrismaClient();
+// Generate JWT for user authentication
+const generateToken = (id: number, role: string): string =>
+  jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });
 
-/** JWT secret key */
-const JWT_SECRET: string = process.env.JWT_SECRET || 'default_secret';
-
-/** Generate JWT token for a user */
-const generateToken = (userId: number, role: string): string => {
-  return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: '1h' });
-};
-
-/** Register a new user */
-export const registerUser = async (
-  user: User
-): Promise<{ user: Omit<User, 'password'>; token: string }> => {
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [{ username: user.username }, { email: user.email }],
-    },
+// Find user by username or email
+const findUserByCredentials = async (username: string, email: string): Promise<User | null> =>
+  prisma.user.findFirst({
+    where: { OR: [{ username }, { email }] },
   });
 
-  if (existingUser) {
-    throw new Error('User already exists');
-  }
+// Hash user password
+const hashPassword = (password: string): Promise<string> =>
+  bcrypt.hash(password, 10);
 
-  const hashedPassword: string = await bcrypt.hash(user.password!, 10);
+// Compare plain password with hashed one
+const validatePassword = (plain: string, hash: string): Promise<boolean> =>
+  bcrypt.compare(plain, hash);
 
-  const newUser = await prisma.user.create({
+// Register a new user
+export const registerUser = async (
+  user: User
+): Promise<{ user: Omit<User, "password">; token: string }> => {
+  const existingUser = await findUserByCredentials(user.username, user.email);
+  if (existingUser) throw new Error("User already exists");
+
+  const hashedPassword: string = await hashPassword(user.password!);
+
+  const newUser: User = await prisma.user.create({
     data: {
       username: user.username,
       email: user.email,
       password: hashedPassword,
-      role: 'CUSTOMER',
+      role: "CUSTOMER",
     },
   });
 
-  const token: string = generateToken(newUser.id, newUser.role);
-
+  const token: string = generateToken(newUser.id!, newUser.role as string);
   const { password, ...userWithoutPassword } = newUser;
+
   return { user: userWithoutPassword, token };
 };
 
-/** Login an existing user */
+// Login an existing user
 export const loginUser = async (
   email: string,
   password: string
-): Promise<{ user: Omit<User, 'password'>; token: string }> => {
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+): Promise<{ user: Omit<User, "password">; token: string; invitationToken: string | null }> => {
+  const existingUser: User | null = await prisma.user.findUnique({ where: { email } });
+  if (!existingUser) throw new Error("User not found");
 
-  if (!existingUser) {
-    throw new Error('User not found');
-  }
+  const isPasswordValid = await validatePassword(password, existingUser.password!);
+  if (!isPasswordValid) throw new Error("Invalid password");
 
-  const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+  const invitation: { token: string } | null = await prisma.invitation.findFirst({
+    where: { usedByEmail: existingUser.email, used: false },
+  });
 
-  if (!isPasswordValid) {
-    throw new Error('Invalid password');
-  }
-
-  const token: string = generateToken(existingUser.id, existingUser.role);
-
-  // Exclude password from returned user object
+  const token: string = generateToken(existingUser.id!, existingUser.role as string);
   const { password: _, ...userWithoutPassword } = existingUser;
-  return { user: userWithoutPassword, token };
+
+  return {
+    user: userWithoutPassword,
+    token,
+    invitationToken: invitation?.token || null,
+  };
 };

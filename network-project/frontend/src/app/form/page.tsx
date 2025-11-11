@@ -1,42 +1,80 @@
-import { Modal, Form, Input, Button } from "antd";
-import { useForm } from "antd/lib/form/Form";
-import axios from "axios";
+"use client";
+
+// Core
+import { JSX, useState } from "react";
+
+// Libraries
+import {Modal, Form, message } from "antd";
+
+// Components
+import { Button } from "../../components/button";
+import { Input } from "../../components/input";
 
 interface MemberRequestFormProps {
   visible: boolean;
   onClose: () => void;
 }
 
-export const MemberRequestForm = ({
+export default function MemberRequestForm({
   visible,
   onClose,
-}: MemberRequestFormProps) => {
-  const [form] = useForm();
+}: MemberRequestFormProps): JSX.Element {
+  const [form] = Form.useForm();
 
-  const handleSubmit = async (values: any) => {
+  /** *************************************** STATE ****************************** */
+
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  /** *************************************** HANDLERS ****************************** */
+
+  const handleSubmit = async (values: Record<string, string>): Promise<void> => {
     try {
-      await axios.post("http://localhost:3001/api/member-requests", values);
+      setIsSubmitting(true);
+
+      const response: Response = await fetch("http://localhost:3001/api/member-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit member request");
+      }
+
+      message.success("Request sent successfully!");
+      form.resetFields();
       onClose();
     } catch (error) {
-      console.error("Error submitting form", error);
+      console.error("Error submitting form:", error);
+      message.error("Failed to send request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  /** *************************************** RENDER ******************************************* */
 
   return (
     <Modal
       title="Member Request Form"
-      visible={visible}
+      open={visible}
       onCancel={onClose}
       footer={null}
     >
-      <Form form={form} onFinish={handleSubmit} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        disabled={isSubmitting}
+      >
         <Form.Item
           name="name"
-          label="Nome"
+          label="Name"
           rules={[{ required: true, message: "Please enter your name" }]}
         >
           <Input />
         </Form.Item>
+
         <Form.Item
           name="email"
           label="Email"
@@ -44,31 +82,35 @@ export const MemberRequestForm = ({
         >
           <Input />
         </Form.Item>
+
         <Form.Item
           name="company"
-          label="Empresa"
+          label="Company"
           rules={[{ required: true, message: "Please enter your company" }]}
         >
           <Input />
         </Form.Item>
+
         <Form.Item
           name="reason"
           label="Por que você quer participar?"
           rules={[
-            {
-              required: true,
-              message: "Please tell us why you want to join",
-            },
+            { required: true, message: "Please tell us why you want to join" },
           ]}
         >
-          <Input.TextArea />
+          <Input />
         </Form.Item>
+
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={isSubmitting}
+          >
             Submit
           </Button>
         </Form.Item>
       </Form>
     </Modal>
   );
-};
+}

@@ -12,7 +12,7 @@ type GetUsersResponse = User[] | { error: string };
 type CreateUserResponse = User | { error: string };
 
 /** Get all users. */
-export const getUsers = async (req: Request, res: Response<GetUsersResponse>) => {
+export const getUsers = async (req: Request, res: Response<GetUsersResponse>): Promise<Response | void> => {
   try {
     const users = await userService.getUsers();
     res.json(users);
@@ -29,7 +29,7 @@ export const getUsers = async (req: Request, res: Response<GetUsersResponse>) =>
 export const createUser = async (
   req: Request<{}, {}, CreateUserInput>,
   res: Response<CreateUserResponse>
-) => {
+): Promise<Response | void> => {
   try {
     const { username, email, password, role } = req.body;
     const user = await userService.createUser({ username, email, password, role });
