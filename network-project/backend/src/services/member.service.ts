@@ -1,10 +1,13 @@
 // Libraries
 import { PrismaClient } from "../generated/prisma";
+import jwt from "jsonwebtoken";
+
 
 // Types
 import { CreateMemberRequestBody, MemberRequestStatus } from "../types/member";
 
 const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
 /** Create a new member request */
 export const createMemberRequest = async (data: CreateMemberRequestBody): Promise<CreateMemberRequestBody> => {
@@ -28,12 +31,33 @@ export const getAllMemberRequests = async (): Promise<CreateMemberRequestBody[]>
 };
 
 /** Update the status of a member request */
-export const updateMemberRequestStatus = async (
-  id: number,
-  status: MemberRequestStatus
-): Promise<CreateMemberRequestBody> => {
-  return await prisma.memberRequest.update({
+export const updateMemberRequestStatus = async (id: number, status: string) => {
+  const updated = await prisma.memberRequest.update({
     where: { id },
-    data: { status },
+    data: { status: status as MemberRequestStatus },
   });
+
+  // 🔹 Gera token de convite se for aprovado
+  if (status === "APPROVED") {
+    const token = jwt.sign(
+      { email: updated.email, id: updated.id },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // 🔹 Salva o token na tabela Invitation
+    const invitation = await prisma.invitation.create({
+      data: {
+        token,
+        memberRequestId: updated.id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    console.log("🎟️ Token gerado no backend:", token);
+
+    return { ...updated, invitationToken: invitation.token };
+  }
+
+  return updated;
 };

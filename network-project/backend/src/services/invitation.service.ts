@@ -1,4 +1,5 @@
 import { PrismaClient, Invitation } from "../generated/prisma";
+import { randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -41,4 +42,24 @@ export const registerWithInvitation = async (token: string, email: string, usern
   });
 
   return user;
+};
+
+export const createInvitation = async (memberRequestId: number, email: string) => {
+  const token = randomBytes(16).toString("hex");
+
+  const invitation = await prisma.invitation.create({
+    data: {
+      token,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24h
+      used: false,
+      usedByEmail: email,
+      memberRequest: {
+        connect: { id: memberRequestId },
+      },
+    },
+  });
+
+  console.log("✅ Token gerado para:", email, "→", token);
+
+  return invitation;
 };

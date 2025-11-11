@@ -42,12 +42,11 @@ export const updateMemberRequestStatus = async (
     const { id } = req.params;
     const { status } = req.body;
 
-    const memberRequest = await memberService.updateMemberRequestStatus(
-      Number(id),
-      status
-    );
+    const result = await memberService.updateMemberRequestStatus(Number(id), status);
 
-    res.status(200).json(memberRequest);
+    console.log("🎟️ Token retornado ao front:", (result as any).invitationToken);
+
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: "Error updating member request" });
   }

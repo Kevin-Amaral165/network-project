@@ -5,4 +5,5 @@ export interface User {
   password?: string;
   role?: 'ADMIN' | 'CUSTOMER';
   createdAt?: Date;
+  invitationToken?: string;
 }

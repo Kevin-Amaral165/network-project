@@ -69,9 +69,31 @@ export default function HomePage() {
 
   if (!hydrated || !user) return null;
 
-  const handleTokenSubmit = () => {
-    if (!token) return message.error("Por favor, insira um token válido");
-    router.push(`/invitations/${token}`);
+    const handleTokenSubmit = async () => {
+    if (!token.trim()) {
+      return message.error("Por favor, insira um token válido");
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/invitations/validate/${token}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return message.error(data.error || "Token inválido ou expirado");
+      }
+
+      message.success("Token validado com sucesso!");
+
+      // Redireciona para a tela de completar cadastro
+      router.push(`/invitations/${token}`);
+    } catch (error) {
+      console.error("Erro ao validar token:", error);
+      message.error("Erro ao validar token. Tente novamente.");
+    }
   };
 
   return (
@@ -126,9 +148,13 @@ export default function HomePage() {
         {/* Token */}
         <div className="mt-8 max-w-md">
           <h2 className="text-xl mb-2 text-white">Digite seu token para completar o registro:</h2>
-          <Form layout="vertical" onFinish={handleTokenSubmit} initialValues={{ token }}>
-            <Form.Item name="token">
-              <Input value={token} onChange={(e) => setToken(e.target.value)} />
+          <Form layout="vertical" onFinish={handleTokenSubmit}>
+            <Form.Item label="Token de Convite">
+              <Input
+                placeholder="Digite o token de convite"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+              />
             </Form.Item>
             <Form.Item>
               <AntButton type="primary" htmlType="submit">

@@ -1,75 +1,63 @@
-// Core
-import { PrismaClient } from '../generated/prisma';
+// src/services/auth.service.ts
+import { PrismaClient } from "../generated/prisma";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model";
 
-// Libraries
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
-// 🧩 Models
-import { User } from '../models/user.model';
-
-
-const prisma: PrismaClient = new PrismaClient();
-
-/** JWT secret key */
-const JWT_SECRET: string = process.env.JWT_SECRET || 'default_secret';
-
-/** Generate JWT token for a user */
+// Gera token JWT
 const generateToken = (userId: number, role: string): string => {
-  return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: "1h" });
 };
 
-/** Register a new user */
+// Cadastro de usuário
 export const registerUser = async (
   user: User
-): Promise<{ user: Omit<User, 'password'>; token: string }> => {
+): Promise<{ user: Omit<User, "password">; token: string }> => {
   const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [{ username: user.username }, { email: user.email }],
-    },
+    where: { OR: [{ username: user.username }, { email: user.email }] },
   });
 
-  if (existingUser) {
-    throw new Error('User already exists');
-  }
+  if (existingUser) throw new Error("User already exists");
 
-  const hashedPassword: string = await bcrypt.hash(user.password!, 10);
-
+  const hashedPassword = await bcrypt.hash(user.password!, 10);
   const newUser = await prisma.user.create({
     data: {
       username: user.username,
       email: user.email,
       password: hashedPassword,
-      role: 'CUSTOMER',
+      role: "CUSTOMER",
     },
   });
 
-  const token: string = generateToken(newUser.id, newUser.role);
-
+  const token = generateToken(newUser.id, newUser.role);
   const { password, ...userWithoutPassword } = newUser;
   return { user: userWithoutPassword, token };
 };
 
-/** Login an existing user */
-export const loginUser = async (
-  email: string,
-  password: string
-): Promise<{ user: Omit<User, 'password'>; token: string }> => {
+// Login de usuário existente
+export const loginUser = async (email: string, password: string) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
-
-  if (!existingUser) {
-    throw new Error('User not found');
-  }
+  if (!existingUser) throw new Error("User not found");
 
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+  if (!isPasswordValid) throw new Error("Invalid password");
 
-  if (!isPasswordValid) {
-    throw new Error('Invalid password');
-  }
+  const invitation = await prisma.invitation.findFirst({
+    where: {
+      usedByEmail: existingUser.email,
+      used: false,
+    },
+  });
 
-  const token: string = generateToken(existingUser.id, existingUser.role);
-
-  // Exclude password from returned user object
+  const token = generateToken(existingUser.id, existingUser.role);
   const { password: _, ...userWithoutPassword } = existingUser;
-  return { user: userWithoutPassword, token };
+
+  return {
+    user: userWithoutPassword,
+    token,
+    invitationToken: invitation?.token || null,
+  };
 };

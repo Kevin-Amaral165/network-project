@@ -40,22 +40,25 @@ export const AdminDashboard = ({ visible, onClose }: AdminDashboardProps) => {
   }, [visible]);
 
   const handleApprove = async (id: number) => {
-    try {
-      console.log(`Approving member request id=${id}`); // 🔹 log de ação
-      await axios.put(
-        `http://localhost:3001/api/member-requests/${id}`,
-        { status: "APPROVED" },
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        }
-      );
-      fetchMemberRequests();
-    } catch (error) {
-      console.error("Error approving member request", error);
-    }
-  };
+  try {
+    console.log(`Approving member request id=${id}`);
+    const { data } = await axios.put(
+      `http://localhost:3001/api/member-requests/${id}`,
+      { status: "APPROVED" },
+      {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      }
+    );
+
+    console.log("🎟️ Token recebido do backend:", data.invitationToken);
+
+    fetchMemberRequests();
+  } catch (error) {
+    console.error("Error approving member request", error);
+  }
+};
 
   const handleReject = async (id: number) => {
     try {

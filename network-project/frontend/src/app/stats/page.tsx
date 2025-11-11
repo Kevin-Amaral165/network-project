@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Row, Col, Statistic, Spin } from "antd";
-import { useUserStore } from "../store/userStore";
+import { useUserStore } from "../../store/userStore";
 
 export default function StatsPage() {
   const router = useRouter();

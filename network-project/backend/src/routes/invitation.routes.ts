@@ -7,6 +7,6 @@ import { validateInvitationTokenController } from "../controllers/invitation.con
 const router: Router = Router();
 
 // Routes
-router.post("/validate/:token", validateInvitationTokenController);
+router.get("/validate/:token", validateInvitationTokenController);
 
 export default router;

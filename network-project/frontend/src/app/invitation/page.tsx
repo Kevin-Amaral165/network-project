@@ -45,7 +45,7 @@ const InvitePage = () => {
     <Modal
       open={modalOpen}
       title="You're invited!"
-      onOk={() => router.push(`/register/${token}`)}
+      onOk={() => router.push(`/invitations/${token}`)}
       onCancel={() => setModalOpen(false)}
       okText="Register"
     >
