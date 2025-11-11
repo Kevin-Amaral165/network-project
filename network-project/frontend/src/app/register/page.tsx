@@ -16,8 +16,7 @@ import { Input } from "../../components/input";
 import { Title } from "../../components/title";
 
 export default function RegisterPage(): JSX.Element {
-
-  /** ****************************************** RENDER ******************************************* */
+  /** ****************************************** STATE ******************************************* */
 
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -26,9 +25,11 @@ export default function RegisterPage(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
 
   /** ****************************************** HANDLERS ******************************************* */
-
+  
   const router: AppRouterInstance = useRouter();
-  const setUser: (user: any, token: string) => void = useUserStore((state) => state.setUser);
+  const setUser: (user: any, token: string) => void = useUserStore(
+    (state) => state.setUser
+  );
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -46,7 +47,6 @@ export default function RegisterPage(): JSX.Element {
 
       if (response.ok) {
         setUser(data.user, data.token);
-
         router.push("/");
       } else {
         setError(data.error || "Erro ao registrar usuário");
@@ -63,11 +63,19 @@ export default function RegisterPage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <Title size="2xl" weight="bold" className="text-center mb-6">
+        {/* Corrigido: cor do título mais escura */}
+        <Title size="2xl" weight="bold" className="text-center mb-6 text-gray-800">
           Registrar
         </Title>
 
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={handleSubmit}
+          autoComplete="off"
+        >
+          <input type="text" name="fakeusernameremembered" className="hidden" />
+          <input type="password" name="fakepasswordremembered" className="hidden" />
+
           {error && <p className="text-red-500 text-center">{error}</p>}
 
           <div>
@@ -85,6 +93,7 @@ export default function RegisterPage(): JSX.Element {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="new-username"
             />
           </div>
 
@@ -103,6 +112,7 @@ export default function RegisterPage(): JSX.Element {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="new-email"
             />
           </div>
 
@@ -121,6 +131,7 @@ export default function RegisterPage(): JSX.Element {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
             />
           </div>
 

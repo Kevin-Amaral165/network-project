@@ -93,7 +93,7 @@ export default function MemberRequestForm({
 
         <Form.Item
           name="reason"
-          label="Why do you want to join?"
+          label="Por que você quer participar?"
           rules={[
             { required: true, message: "Please tell us why you want to join" },
           ]}

@@ -6,11 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 
 // Libraries
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import {
-  Modal,
-  Spin,
-  Form,
-} from "antd";
+import { Modal, Spin, Form, message } from "antd";
 
 // Components
 import { Input } from "../../../components/input";
@@ -25,37 +21,23 @@ export default function InvitationTokenPage(): JSX.Element {
   const [isValid, setIsValid] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
-  /** *************************************** HANDLERS ****************************************** */
-
   const [form] = Form.useForm();
 
-   const handleFinish = async (): Promise<void> => {
+  /** *************************************** HANDLERS ****************************************** */
+
+  const handleFinish = async (): Promise<void> => {
     try {
-      const values: Record<string, any> = await form.validateFields();
-      console.log("Dados preenchidos:", values);
-      alert("Cadastro efetuado com sucesso!");
+      const values = await form.validateFields();
+
+      alert("Registro concluído com sucesso!");
+
       setModalOpen(false);
+
       router.push("/");
     } catch (error) {
-      alert("Preencha todos os campos corretamente!");
+      message.error("Preencha todos os campos corretamente!");
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin size="large" tip="Carregando convite..." />
-      </div>
-    );
-  }
-
-  if (!isValid) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Convite inválido ou expirado.</p>
-      </div>
-    );
-  }
 
   /** *************************************** EFFECTS ****************************************** */
 
@@ -64,23 +46,20 @@ export default function InvitationTokenPage(): JSX.Element {
       try {
         const jwt: string | null = localStorage.getItem("token");
         if (!jwt) {
-          console.error("Usuário não autenticado.");
+          console.warn("Usuário não autenticado.");
           setIsValid(false);
           return;
         }
 
-        const decoded: { email?: string } = JSON.parse(atob(jwt.split(".")[1]));
-        const userEmail: string | undefined = decoded?.email;
-
-        const response: Response = await fetch(
-          `http://localhost:3001/api/invitations/validate/${token}?email=${userEmail}`,
+        const response = await fetch(
+          `http://localhost:3001/api/invitations/validate/${token}`,
           {
             method: "GET",
             headers: { Authorization: `Bearer ${jwt}` },
           }
         );
 
-        const data: { valid?: boolean } = await response.json();
+        const data = await response.json();
 
         if (response.ok && data.valid) {
           setIsValid(true);
@@ -100,6 +79,22 @@ export default function InvitationTokenPage(): JSX.Element {
   }, [token]);
 
   /** *************************************** RENDER ******************************************* */
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="Carregando convite..." />
+      </div>
+    );
+  }
+
+  if (!isValid) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Convite inválido ou expirado.</p>
+      </div>
+    );
+  }
 
   return (
     <Modal
