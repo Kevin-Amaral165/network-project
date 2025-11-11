@@ -4,8 +4,8 @@
 import { useEffect, useState } from "react";
 
 // Libraries
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useRouter } from "next/navigation";
+import { Form, Input, Button as AntButton, message, Modal, Row, Col, Card, Statistic, Spin } from "antd";
 
 // Store
 import { useUserStore } from "../store/userStore";
@@ -20,33 +20,59 @@ import { Navbar } from "../components/navbar";
 import { Title } from "../components/title";
 
 export default function HomePage() {
-  // Router
-  const router: AppRouterInstance = useRouter();
+  const router = useRouter();
+  const { user, loadFromStorage, logout, hydrated } = useUserStore();
 
-  // Store
-  const {
-    user,
-    loadFromStorage,
-    logout,
-    hydrated,
-  } = useUserStore();
-
-  // State
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  // Modals
+  const [isFormModalVisible, setIsFormModalVisible] = useState(false);
+  const [isStatsModalVisible, setIsStatsModalVisible] = useState(false);
   const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
 
-  // Effects
+  // Token
+  const [token, setToken] = useState("");
+
+  // Stats
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    monthlyReferrals: 0,
+    monthlyThanks: 0,
+  });
+
   useEffect(() => {
     loadFromStorage();
+    // Preenchimento de exemplo
+    setToken("TOKEN_PRE_PREENCHIDO_EXEMPLO");
   }, [loadFromStorage]);
 
+  // Redireciona se não logado
   useEffect(() => {
     if (hydrated && !user) {
       router.push("/login");
     }
   }, [hydrated, user, router]);
 
+  // Carrega stats mockados
+  useEffect(() => {
+    if (user) {
+      setLoadingStats(true);
+      setTimeout(() => {
+        setStats({
+          totalMembers: 123,
+          monthlyReferrals: 45,
+          monthlyThanks: 32,
+        });
+        setLoadingStats(false);
+      }, 1000);
+    }
+  }, [user]);
+
   if (!hydrated || !user) return null;
+
+  const handleTokenSubmit = () => {
+    if (!token) return message.error("Por favor, insira um token válido");
+    router.push(`/invitations/${token}`);
+  };
 
   return (
     <>
@@ -55,19 +81,30 @@ export default function HomePage() {
         actions={
           <>
             <Button
-              onClick={() => setIsModalVisible(true)}
+              onClick={() => setIsFormModalVisible(true)}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Form
             </Button>
+
             {user.role === "ADMIN" && (
-              <Button
-                onClick={() => setIsAdminModalVisible(true)}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Admin
-              </Button>
+              <>
+                <Button
+                  onClick={() => setIsStatsModalVisible(true)}
+                  className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Stats
+                </Button>
+
+                <Button
+                  onClick={() => setIsAdminModalVisible(true)}
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Admin
+                </Button>
+              </>
             )}
+
             <Button
               onClick={() => {
                 logout();
@@ -82,15 +119,76 @@ export default function HomePage() {
       />
 
       <div className="p-8">
-        <Title className="text-3xl font-bold">
+        <Title className="text-3xl font-bold text-white">
           Bem-vindo à Dashboard, {user.username}!
         </Title>
+
+        {/* Token */}
+        <div className="mt-8 max-w-md">
+          <h2 className="text-xl mb-2 text-white">Digite seu token para completar o registro:</h2>
+          <Form layout="vertical" onFinish={handleTokenSubmit} initialValues={{ token }}>
+            <Form.Item name="token">
+              <Input value={token} onChange={(e) => setToken(e.target.value)} />
+            </Form.Item>
+            <Form.Item>
+              <AntButton type="primary" htmlType="submit">
+                Enviar Token
+              </AntButton>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
 
+      {/* Modais */}
       <MemberRequestForm
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
+        visible={isFormModalVisible}
+        onClose={() => setIsFormModalVisible(false)}
       />
+
+      <Modal
+        title="Dashboard Admin"
+        open={isStatsModalVisible}
+        onCancel={() => setIsStatsModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        {loadingStats ? (
+          <div className="flex justify-center items-center h-64">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Row gutter={16}>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  title="Membros Ativos"
+                  value={stats.totalMembers}
+                  valueStyle={{ color: "#3f8600" }}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  title="Indicações no Mês"
+                  value={stats.monthlyReferrals}
+                  valueStyle={{ color: "#1890ff" }}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card>
+                <Statistic
+                  title='"Obrigados" Registrados no Mês'
+                  value={stats.monthlyThanks}
+                  valueStyle={{ color: "#cf1322" }}
+                />
+              </Card>
+            </Col>
+          </Row>
+        )}
+      </Modal>
+
       <AdminDashboard
         visible={isAdminModalVisible}
         onClose={() => setIsAdminModalVisible(false)}
