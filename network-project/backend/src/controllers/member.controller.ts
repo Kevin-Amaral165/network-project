@@ -11,9 +11,9 @@ import { CreateMemberRequestBody, UpdateMemberRequestStatusBody } from "../types
 export const createMemberRequest = async (
   req: Request<{}, {}, CreateMemberRequestBody>,
   res: Response
-) => {
+): Promise<Response | void> => {
   try {
-    const memberRequest = await memberService.createMemberRequest(req.body);
+    const memberRequest: CreateMemberRequestBody = await memberService.createMemberRequest(req.body);
     res.status(201).json(memberRequest);
   } catch (error: any) {
     if (error.message.includes("já enviou uma solicitação")) {
@@ -24,9 +24,9 @@ export const createMemberRequest = async (
 };
 
 /** Get all member requests */
-export const getAllMemberRequests = async (_req: Request, res: Response) => {
+export const getAllMemberRequests = async (_req: Request, res: Response): Promise<Response | void> => {
   try {
-    const memberRequests = await memberService.getAllMemberRequests();
+    const memberRequests: CreateMemberRequestBody[] = await memberService.getAllMemberRequests();
     res.status(200).json(memberRequests);
   } catch (error) {
     res.status(500).json({ message: "Error getting member requests" });
@@ -37,14 +37,14 @@ export const getAllMemberRequests = async (_req: Request, res: Response) => {
 export const updateMemberRequestStatus = async (
   req: Request<{ id: string }, {}, UpdateMemberRequestStatusBody>,
   res: Response
-) => {
+): Promise<Response | void> => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
     const result = await memberService.updateMemberRequestStatus(Number(id), status);
 
-    console.log("🎟️ Token retornado ao front:", (result as any).invitationToken);
+    console.log("Token retornado ao front:", (result as any).invitationToken);
 
     res.status(200).json(result);
   } catch (error) {

@@ -1,5 +1,5 @@
 // Libraries
-import { PrismaClient } from "../generated/prisma";
+import { Invitation, PrismaClient } from "../generated/prisma";
 import jwt from "jsonwebtoken";
 
 
@@ -9,9 +9,9 @@ import { CreateMemberRequestBody, MemberRequestStatus } from "../types/member";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
-/** Create a new member request */
+// Create a new member request
 export const createMemberRequest = async (data: CreateMemberRequestBody): Promise<CreateMemberRequestBody> => {
-  const existingRequest = await prisma.memberRequest.findFirst({
+  const existingRequest: CreateMemberRequestBody | null = await prisma.memberRequest.findFirst({
     where: {
       email: data.email,
       status: MemberRequestStatus.PENDING,
@@ -25,19 +25,20 @@ export const createMemberRequest = async (data: CreateMemberRequestBody): Promis
   return await prisma.memberRequest.create({ data });
 };
 
-/** Get all member requests */
+// Get all member requests
 export const getAllMemberRequests = async (): Promise<CreateMemberRequestBody[]> => {
   return await prisma.memberRequest.findMany();
 };
 
-/** Update the status of a member request */
-export const updateMemberRequestStatus = async (id: number, status: string) => {
+// Update the status of a member request
+export const updateMemberRequestStatus = async (id: number, status: string): Promise<CreateMemberRequestBody | (
+  CreateMemberRequestBody & { invitationToken: string }
+)> => {
   const updated = await prisma.memberRequest.update({
     where: { id },
     data: { status: status as MemberRequestStatus },
   });
 
-  // 🔹 Gera token de convite se for aprovado
   if (status === "APPROVED") {
     const token = jwt.sign(
       { email: updated.email, id: updated.id },
@@ -45,8 +46,7 @@ export const updateMemberRequestStatus = async (id: number, status: string) => {
       { expiresIn: "7d" }
     );
 
-    // 🔹 Salva o token na tabela Invitation
-    const invitation = await prisma.invitation.create({
+    const invitation: Invitation = await prisma.invitation.create({
       data: {
         token,
         memberRequestId: updated.id,
@@ -54,7 +54,7 @@ export const updateMemberRequestStatus = async (id: number, status: string) => {
       },
     });
 
-    console.log("🎟️ Token gerado no backend:", token);
+    console.log("Token gerado no backend:", token);
 
     return { ...updated, invitationToken: invitation.token };
   }
