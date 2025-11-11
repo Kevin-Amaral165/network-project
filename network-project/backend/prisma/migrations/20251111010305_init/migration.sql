@@ -37,6 +37,8 @@ CREATE TABLE "Invitation" (
     "id" SERIAL NOT NULL,
     "token" TEXT NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+    "usedByEmail" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "memberRequestId" INTEGER NOT NULL,
 
