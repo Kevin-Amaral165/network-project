@@ -2,6 +2,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -25,7 +26,18 @@ model MemberRequest {
   company   String
   reason    String
   status    MemberRequestStatus  @default(PENDING)
-  createdAt DateTime             @default(now())
+ invitation Invitation?
+}
+
+model Invitation {
+  id              Int           @id @default(autoincrement())
+  token           String        @unique
+  expiresAt       DateTime
+  used            Boolean       @default(false)
+  usedByEmail     String?       // email do usuário que utilizou o token
+  createdAt       DateTime      @default(now())
+  memberRequestId Int           @unique
+  memberRequest   MemberRequest @relation(fields: [memberRequestId], references: [id])
 }
 
 enum MemberRequestStatus {

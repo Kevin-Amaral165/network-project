@@ -23,7 +23,7 @@ export const createMemberRequest = async (
   }
 };
 
-// Get all member requests
+/** Get all member requests */
 export const getAllMemberRequests = async (_req: Request, res: Response) => {
   try {
     const memberRequests = await memberService.getAllMemberRequests();
@@ -33,7 +33,7 @@ export const getAllMemberRequests = async (_req: Request, res: Response) => {
   }
 };
 
-// Update status of a member request
+/** Update the status of a member request*/
 export const updateMemberRequestStatus = async (
   req: Request<{ id: string }, {}, UpdateMemberRequestStatusBody>,
   res: Response
