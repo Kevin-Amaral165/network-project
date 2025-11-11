@@ -1,21 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// Core
+import { JSX, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Modal, Button } from "antd";
 
-const InvitePage = () => {
+// Libraries
+import { Modal } from "antd";
+
+export default function InvitePage(): JSX.Element {
   const { token } = useParams();
   const router = useRouter();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
+  /** *************************************** STATE ****************************************** */
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isValid, setIsValid] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+
+  /** *************************************** EFFECTS ****************************************** */
 
   useEffect(() => {
-    const validateToken = async () => {
+    const validateToken = async (): Promise<void> => {
       try {
-        const response = await fetch(
+        const response: Response = await fetch(
           `http://localhost:3001/api/invitations/validate/${token}`,
           { method: "POST" }
         );
@@ -37,8 +44,9 @@ const InvitePage = () => {
     if (token) validateToken();
   }, [token]);
 
+  /** *************************************** RENDER ******************************************* */
+  
   if (isLoading) return <div>Loading...</div>;
-
   if (!isValid) return <div>Invalid or expired token</div>;
 
   return (
@@ -52,6 +60,4 @@ const InvitePage = () => {
       <p>Your invitation is valid! Click Register to complete your signup.</p>
     </Modal>
   );
-};
-
-export default InvitePage;
+}

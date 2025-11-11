@@ -1,47 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// Core
+import { JSX, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Row, Col, Statistic, Spin } from "antd";
+
+// Libraries
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Spin
+} from "antd";
+
+// Store
 import { useUserStore } from "../../store/userStore";
 
-export default function StatsPage() {
-  const router = useRouter();
+// Components
+import { Title } from "../../components/title";
+
+export default function StatsPage(): JSX.Element {
+  const router: AppRouterInstance = useRouter();
   const { user, loadFromStorage, hydrated } = useUserStore();
 
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+   /** ****************************************** STATE ******************************************* */
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [stats, setStats] = useState<{
+    totalMembers: number;
+    monthlyReferrals: number;
+    monthlyThanks: number;
+  }>({
     totalMembers: 0,
     monthlyReferrals: 0,
     monthlyThanks: 0,
   });
 
-  // Carrega o usuário do storage
-  useEffect(() => {
-    loadFromStorage();
-  }, [loadFromStorage]);
-
-  // Redireciona se não estiver logado
-  useEffect(() => {
-    if (hydrated && !user) {
-      router.push("/login");
-    }
-  }, [hydrated, user, router]);
-
-  // Simula carregamento dos dados
-  useEffect(() => {
-    if (user) {
-      // Aqui você pode substituir por uma chamada ao backend
-      setTimeout(() => {
-        setStats({
-          totalMembers: 123,       // número total de membros ativos
-          monthlyReferrals: 45,    // total de indicações do mês
-          monthlyThanks: 32,       // total de "obrigados" registrados no mês
-        });
-        setLoading(false);
-      }, 1000);
-    }
-  }, [user]);
+    /** ****************************************** LOADING ******************************************* */
 
   if (!hydrated || !user || loading) {
     return (
@@ -51,9 +47,36 @@ export default function StatsPage() {
     );
   }
 
+   /** ****************************************** EFFECTS ******************************************* */
+
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
+
+  useEffect(() => {
+    if (hydrated && !user) {
+      router.push("/login");
+    }
+  }, [hydrated, user, router]);
+
+  useEffect(() => {
+    if (user) {
+      setTimeout(() => {
+        setStats({
+          totalMembers: 123,
+          monthlyReferrals: 45,
+          monthlyThanks: 32,
+        });
+        setLoading(false);
+      }, 1000);
+    }
+  }, [user]);
+
+  /** ****************************************** RENDER ******************************************* */
+
   return (
     <div className="p-8 bg-black min-h-screen text-white">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <Title className="text-3xl font-bold mb-8">Dashboard</Title>
 
       <Row gutter={16}>
         <Col span={8}>

@@ -1,60 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// Core
+import { JSX, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Modal, Spin, Form, Input } from "antd";
 
-export default function InvitationTokenPage() {
-  const router = useRouter();
+// Libraries
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import {
+  Modal,
+  Spin,
+  Form,
+} from "antd";
+
+// Components
+import { Input } from "../../../components/input";
+
+export default function InvitationTokenPage(): JSX.Element {
+  const router: AppRouterInstance = useRouter();
   const { token } = useParams();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
+  /** ****************************************** STATE ******************************************* */
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isValid, setIsValid] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+
+  /** *************************************** HANDLERS ****************************************** */
+
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    const validateToken = async () => {
-      try {
-        const jwt = localStorage.getItem("token");
-        if (!jwt) {
-          console.error("Usuário não autenticado.");
-          setIsValid(false);
-          return;
-        }
-
-        const decoded = JSON.parse(atob(jwt.split(".")[1]));
-        const userEmail = decoded?.email;
-
-        const response = await fetch(
-          `http://localhost:3001/api/invitations/validate/${token}?email=${userEmail}`,
-          {
-            method: "GET",
-            headers: { Authorization: `Bearer ${jwt}` },
-          }
-        );
-
-        const data = await response.json();
-        if (response.ok && data.valid) {
-          setIsValid(true);
-          setModalOpen(true);
-        } else {
-          setIsValid(false);
-        }
-      } catch (error) {
-        console.error("Erro ao validar token:", error);
-        setIsValid(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (token) validateToken();
-  }, [token]);
-
-  const handleFinish = async () => {
+   const handleFinish = async (): Promise<void> => {
     try {
-      const values = await form.validateFields();
+      const values: Record<string, any> = await form.validateFields();
       console.log("Dados preenchidos:", values);
       alert("Cadastro efetuado com sucesso!");
       setModalOpen(false);
@@ -79,6 +56,50 @@ export default function InvitationTokenPage() {
       </div>
     );
   }
+
+  /** *************************************** EFFECTS ****************************************** */
+
+  useEffect(() => {
+    const validateToken = async (): Promise<void> => {
+      try {
+        const jwt: string | null = localStorage.getItem("token");
+        if (!jwt) {
+          console.error("Usuário não autenticado.");
+          setIsValid(false);
+          return;
+        }
+
+        const decoded: { email?: string } = JSON.parse(atob(jwt.split(".")[1]));
+        const userEmail: string | undefined = decoded?.email;
+
+        const response: Response = await fetch(
+          `http://localhost:3001/api/invitations/validate/${token}?email=${userEmail}`,
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${jwt}` },
+          }
+        );
+
+        const data: { valid?: boolean } = await response.json();
+
+        if (response.ok && data.valid) {
+          setIsValid(true);
+          setModalOpen(true);
+        } else {
+          setIsValid(false);
+        }
+      } catch (error) {
+        console.error("Erro ao validar token:", error);
+        setIsValid(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (token) validateToken();
+  }, [token]);
+
+  /** *************************************** RENDER ******************************************* */
 
   return (
     <Modal

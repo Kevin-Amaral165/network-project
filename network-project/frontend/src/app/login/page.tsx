@@ -1,27 +1,41 @@
 "use client";
 
-import { useState } from "react";
+// Core
+import { JSX, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/src/components/input";
-import { Button } from "@/src/components/button";
-import { Title } from "@/src/components/title";
-import { useUserStore } from "@/src/store/userStore";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+// Libraries
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+// Components
+import { Button } from "../../components/button";
+import { Input } from "../../components/input";
+import { Title } from "../../components/title";
+
+// Store
+import { useUserStore } from "../../store/userStore";
+
+export default function LoginPage(): JSX.Element {
+  
+  /** ****************************************** STATE ******************************************* */
+
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const setUser = useUserStore((state) => state.setUser);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+/** ************************************** HANDLERS ****************************************** */
+
+  const router: AppRouterInstance = useRouter();
+  const setUser: (user: any, token: string) => void = useUserStore((state) => state.setUser);
+
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/login", {
+      const response: Response = await fetch("http://localhost:3001/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -41,6 +55,8 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  /** ****************************************** RENDER ******************************************* */
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -89,7 +105,6 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col items-center justify-center mt-4 gap-3">
-            {/* Botão principal de login */}
             <Button
               type="primary"
               htmlType="submit"
@@ -99,9 +114,8 @@ export default function LoginPage() {
               {loading ? "Entrando..." : "Login"}
             </Button>
 
-            {/* Novo botão de registro */}
             <Button
-              type="secondary"
+              type="primary"
               onClick={() => router.push("/register")}
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
             >

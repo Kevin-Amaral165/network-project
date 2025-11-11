@@ -1,84 +1,118 @@
 "use client";
 
-import { Modal, Table, Button } from "antd";
-import axios from "axios";
-import { useEffect, useState } from "react";
+// Core
+import { useEffect, useState, JSX } from "react";
+
+// Libraries
+import { Modal, Table, message } from "antd";
+
+// Store
 import { useUserStore } from "@/src/store/userStore";
+
+// Components
+import { Button } from "../../components/button";
 
 interface AdminDashboardProps {
   visible: boolean;
   onClose: () => void;
 }
 
-export const AdminDashboard = ({ visible, onClose }: AdminDashboardProps) => {
-  const [memberRequests, setMemberRequests] = useState<any[]>([]);
+export default function AdminDashboard({
+  visible,
+  onClose,
+}: AdminDashboardProps): JSX.Element {
   const { user } = useUserStore();
 
-  const fetchMemberRequests = async () => {
+  /** *************************************** STATE ****************************************** */
+
+  const [memberRequests, setMemberRequests] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  /** *************************************** HANDLERS ****************************** */
+
+  const fetchMemberRequests = async (): Promise<void> => {
     try {
-      console.log("Fetching member requests..."); // 🔹 log inicial
-      const { data } = await axios.get(
-        "http://localhost:3001/api/member-requests",
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        }
-      );
-      console.log("Fetched data from backend:", data); // 🔹 log do backend
-      setMemberRequests(data);
-      console.log("State updated, memberRequests:", memberRequests); // 🔹 log do state (observe que useState é assíncrono)
-    } catch (error) {
-      console.error("Error fetching member requests", error);
-    }
-  };
-
-  useEffect(() => {
-    if (visible) {
-      fetchMemberRequests();
-    }
-  }, [visible]);
-
-  const handleApprove = async (id: number) => {
-  try {
-    console.log(`Approving member request id=${id}`);
-    const { data } = await axios.put(
-      `http://localhost:3001/api/member-requests/${id}`,
-      { status: "APPROVED" },
-      {
+      setIsLoading(true);
+      const response: Response = await fetch("http://localhost:3001/api/member-requests", {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${user?.token}`,
+          "Content-Type": "application/json",
         },
-      }
-    );
+      });
 
-    console.log("🎟️ Token recebido do backend:", data.invitationToken);
+      if (!response.ok) throw new Error("Failed to fetch member requests");
 
-    fetchMemberRequests();
-  } catch (error) {
-    console.error("Error approving member request", error);
-  }
-};
-
-  const handleReject = async (id: number) => {
-    try {
-      console.log(`Rejecting member request id=${id}`); // 🔹 log de ação
-      await axios.put(
-        `http://localhost:3001/api/member-requests/${id}`,
-        { status: "REJECTED" },
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        }
-      );
-      fetchMemberRequests();
+      const data = await response.json();
+      setMemberRequests(data);
     } catch (error) {
-      console.error("Error rejecting member request", error);
+      console.error("Error fetching member requests:", error);
+      message.error("Failed to load member requests.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const columns = [
+  const handleApprove = async (id: number): Promise<void> => {
+    try {
+      const response: Response = await fetch(
+        `http://localhost:3001/api/member-requests/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "APPROVED" }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to approve request");
+
+      const data = await response.json();
+      console.log("Token received from backend:", data.invitationToken);
+
+      message.success("Request approved successfully!");
+      fetchMemberRequests();
+    } catch (error) {
+      console.error("Error approving member request:", error);
+      message.error("Error approving request.");
+    }
+  };
+
+  const handleReject = async (id: number): Promise<void> => {
+    try {
+      const response: Response = await fetch(
+        `http://localhost:3001/api/member-requests/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "REJECTED" }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to reject request");
+
+      message.warning("Request rejected.");
+      fetchMemberRequests();
+    } catch (error) {
+      console.error("Error rejecting member request:", error);
+      message.error("Error rejecting request.");
+    }
+  };
+
+  /** *************************************** EFFECTS ****************************************** */
+
+  useEffect(() => {
+    if (visible) fetchMemberRequests();
+  }, [visible]);
+
+  /** *************************************** RENDER ******************************************* */
+
+  const columns: any[] = [
     {
       title: "Name",
       dataIndex: "name",
@@ -104,33 +138,34 @@ export const AdminDashboard = ({ visible, onClose }: AdminDashboardProps) => {
       dataIndex: "status",
       key: "status",
       render: (status: string) => {
-        if (status === "APPROVED") return <span style={{ color: "green" }}>Aprovado</span>;
-        if (status === "REJECTED") return <span style={{ color: "red" }}>Rejeitado</span>;
-        return <span style={{ color: "orange" }}>Pendente</span>;
+        if (status === "APPROVED")
+          return <span style={{ color: "green" }}>Approved</span>;
+        if (status === "REJECTED")
+          return <span style={{ color: "red" }}>Rejected</span>;
+        return <span style={{ color: "orange" }}>Pending</span>;
       },
     },
     {
       title: "Actions",
       key: "actions",
       render: (_: any, record: any) => {
-        if (record.status !== "PENDING") {
-          return <span>-</span>;
-        }
+        if (record.status !== "PENDING") return <span>-</span>;
 
         return (
-          <span>
-            <Button type="primary" onClick={() => handleApprove(record.id)}>
-              Aprovar
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleApprove(record.id)}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              Approve
             </Button>
             <Button
-              type="primary"
-              danger
               onClick={() => handleReject(record.id)}
-              style={{ marginLeft: 8 }}
+              className="bg-red-500 hover:bg-red-600 text-white"
             >
-              Rejeitar
+              Reject
             </Button>
-          </span>
+          </div>
         );
       },
     },
@@ -139,13 +174,17 @@ export const AdminDashboard = ({ visible, onClose }: AdminDashboardProps) => {
   return (
     <Modal
       title="Admin Dashboard"
-      visible={visible}
+      open={visible}
       onCancel={onClose}
       footer={null}
       width={1000}
     >
-      <h4>DEBUG: number of requests = {memberRequests.length}</h4> {/* 🔹 log visual */}
-      <Table dataSource={memberRequests} columns={columns} rowKey="id" />
+      <Table
+        dataSource={memberRequests}
+        columns={columns}
+        rowKey="id"
+        loading={isLoading}
+      />
     </Modal>
   );
-};
+}

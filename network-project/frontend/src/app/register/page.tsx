@@ -1,28 +1,42 @@
 "use client";
 
-import { useState } from "react";
+// Core
+import { JSX, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/src/components/input";
-import { Button } from "@/src/components/button";
-import { Title } from "@/src/components/title";
-import { useUserStore } from "@/src/store/userStore";
 
-export default function RegisterPage() {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+// Libraries
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+// Store
+import { useUserStore } from "../../store/userStore";
+
+// Components
+import { Button } from "../../components/button";
+import { Input } from "../../components/input";
+import { Title } from "../../components/title";
+
+export default function RegisterPage(): JSX.Element {
+
+  /** ****************************************** RENDER ******************************************* */
+
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const setUser = useUserStore((state) => state.setUser);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /** ****************************************** HANDLERS ******************************************* */
+
+  const router: AppRouterInstance = useRouter();
+  const setUser: (user: any, token: string) => void = useUserStore((state) => state.setUser);
+
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/register", {
+      const response: Response = await fetch("http://localhost:3001/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -31,10 +45,8 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Salva user + token no Zustand
         setUser(data.user, data.token);
 
-        // Redireciona para home após registro
         router.push("/");
       } else {
         setError(data.error || "Erro ao registrar usuário");
@@ -46,6 +58,8 @@ export default function RegisterPage() {
     }
   };
 
+  /** ****************************************** RENDER ******************************************* */
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -56,7 +70,6 @@ export default function RegisterPage() {
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           {error && <p className="text-red-500 text-center">{error}</p>}
 
-          {/* Username */}
           <div>
             <label
               htmlFor="username"
@@ -75,7 +88,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label
               htmlFor="email"
@@ -94,7 +106,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Senha */}
           <div>
             <label
               htmlFor="password"
@@ -113,9 +124,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Botões */}
           <div className="flex flex-col items-center justify-center mt-4 gap-3">
-            {/* Botão principal */}
             <Button
               type="primary"
               htmlType="submit"
@@ -125,9 +134,8 @@ export default function RegisterPage() {
               {loading ? "Registrando..." : "Registrar"}
             </Button>
 
-            {/* Voltar para login */}
             <Button
-              type="secondary"
+              type="primary"
               onClick={() => router.push("/login")}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-full"
             >
