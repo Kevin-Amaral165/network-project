@@ -16,7 +16,6 @@ import { Title } from "../../components/title";
 import { useUserStore } from "../../store/userStore";
 
 export default function LoginPage(): JSX.Element {
-  
   /** ****************************************** STATE ******************************************* */
 
   const [email, setEmail] = useState<string>("");
@@ -24,10 +23,12 @@ export default function LoginPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-/** ************************************** HANDLERS ****************************************** */
+  /** ****************************************** HANDLERS ******************************************* */
 
   const router: AppRouterInstance = useRouter();
-  const setUser: (user: any, token: string) => void = useUserStore((state) => state.setUser);
+  const setUser: (user: any, token: string) => void = useUserStore(
+    (state) => state.setUser
+  );
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -61,11 +62,19 @@ export default function LoginPage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <Title size="2xl" weight="bold" className="text-center mb-6">
+        <Title
+          size="2xl"
+          weight="bold"
+          className="text-center mb-6 text-gray-800"
+        >
           Login
         </Title>
 
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="off">
+          {/* Inputs falsos para evitar autofill */}
+          <input type="text" name="fakeusernameremembered" className="hidden" />
+          <input type="password" name="fakepasswordremembered" className="hidden" />
+
           {error && <p className="text-red-500 text-center">{error}</p>}
 
           <div>
@@ -83,6 +92,7 @@ export default function LoginPage(): JSX.Element {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="new-email"
             />
           </div>
 
@@ -101,6 +111,7 @@ export default function LoginPage(): JSX.Element {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
             />
           </div>
 
