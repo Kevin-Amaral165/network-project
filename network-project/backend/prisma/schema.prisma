@@ -10,7 +10,7 @@ datasource db {
 }
 
 model User {
-  id        Int
+  id        Int       @id @default(autoincrement())
   username  String    @unique
   email     String    @unique
   password  String
@@ -19,24 +19,24 @@ model User {
 }
 
 model MemberRequest {
-  id        Int
+  id        Int                  @id @default(autoincrement())
   name      String
   email     String
   company   String
   reason    String
   status    MemberRequestStatus  @default(PENDING)
-  invitation Invitation?
+ invitation Invitation?
 }
 
 model Invitation {
-  id              Int
+  id              Int           @id @default(autoincrement())
   token           String        @unique
   expiresAt       DateTime
   used            Boolean       @default(false)
   usedByEmail     String?
   createdAt       DateTime      @default(now())
   memberRequestId Int           @unique
-  memberRequest   MemberRequest
+  memberRequest   MemberRequest @relation(fields: [memberRequestId], references: [id])
 }
 
 enum MemberRequestStatus {
