@@ -1,11 +1,11 @@
 // Libraries
-import { PrismaClient, Invitation, User } from "../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 import { randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
 
 // Validate an invitation token for a given email
-export const validateInvitationToken = async (token: string, email: string): Promise<Invitation> => {
+export const validateInvitationToken = async (token: string, email: string): Promise<any> => {
   const invitation = await prisma.invitation.findUnique({
     where: { token },
     include: { memberRequest: true },
@@ -22,10 +22,10 @@ export const validateInvitationToken = async (token: string, email: string): Pro
 };
 
 /** Register a user and mark invitation as used */
-export const registerWithInvitation = async (token: string, email: string, username: string, password: string): Promise<User> => {
-  const invitation: Invitation = await validateInvitationToken(token, email);
+export const registerWithInvitation = async (token: string, email: string, username: string, password: string): Promise<any> => {
+  const invitation = await validateInvitationToken(token, email);
 
-  const user: User = await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       username,
       email,
@@ -42,10 +42,10 @@ export const registerWithInvitation = async (token: string, email: string, usern
   return user;
 };
 
-export const createInvitation = async (memberRequestId: number, email: string): Promise<Invitation> => {
+export const createInvitation = async (memberRequestId: number, email: string): Promise<any> => {
   const token: string = randomBytes(16).toString("hex");
 
-  const invitation: Invitation = await prisma.invitation.create({
+  const invitation = await prisma.invitation.create({
     data: {
       token,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),

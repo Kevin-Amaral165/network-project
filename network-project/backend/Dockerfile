@@ -1,27 +1,34 @@
-# Use a imagem oficial do Node.js como base
-FROM node:18-alpine
+# Dockerfile do backend
+FROM node:20-bullseye-slim
 
-# Crie e defina o diretório de trabalho
+# Instala dependências do sistema necessárias para Prisma e bcrypt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libc6-dev \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configura diretório de trabalho
 WORKDIR /usr/src/app
 
-# Copie os arquivos de manifesto do pacote e instale as dependências
+# Copia package.json e package-lock.json
 COPY package*.json ./
+
+# Instala dependências Node.js
 RUN npm install
 
-# Copie o schema do Prisma
-COPY prisma ./prisma/
-
-# Gere o cliente Prisma
-RUN npx prisma generate
-
-# Copie o restante do código-fonte
+# Copia todo o código da aplicação
 COPY . .
 
-# Compile o TypeScript
+# Gera Prisma Client
+RUN npx prisma generate
+
+# Compila TypeScript para JavaScript
 RUN npm run build
 
-# Exponha a porta em que o backend é executado
+# Expõe porta do backend
 EXPOSE 3001
 
-# Defina o comando para iniciar a aplicação
-CMD ["npm", "start"]
+# Comando padrão para iniciar a aplicação compilada
+CMD ["node", "dist/server.js"]

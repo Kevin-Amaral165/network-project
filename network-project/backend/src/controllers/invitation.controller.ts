@@ -2,12 +2,12 @@
 import { Request, Response } from "express";
 
 // Libraries
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 
 // Services
 import * as invitationService from "../services/invitation.service";
 
-const prisma = new PrismaClient();
+const prisma: any = new PrismaClient();
 
 // Handle user registration using a valid invitation token
 export const registerWithInvitationController = async (

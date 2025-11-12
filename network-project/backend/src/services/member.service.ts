@@ -1,5 +1,5 @@
 // Libraries
-import { Invitation, PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
 
@@ -46,7 +46,7 @@ export const updateMemberRequestStatus = async (id: number, status: string): Pro
       { expiresIn: "7d" }
     );
 
-    const invitation: Invitation = await prisma.invitation.create({
+    const invitation = await prisma.invitation.create({
       data: {
         token,
         memberRequestId: updated.id,
