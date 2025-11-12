@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 
 // Services
-import * as userService from "../services/user.serivce";
+import * as userService from "../services/user.service";
 
 // Types
 import { CreateUserInput, User } from "../types/user";
