@@ -2,7 +2,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -11,7 +10,7 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
+  id        Int
   username  String    @unique
   email     String    @unique
   password  String
@@ -20,24 +19,24 @@ model User {
 }
 
 model MemberRequest {
-  id        Int                  @id @default(autoincrement())
+  id        Int
   name      String
   email     String
   company   String
   reason    String
   status    MemberRequestStatus  @default(PENDING)
- invitation Invitation?
+  invitation Invitation?
 }
 
 model Invitation {
-  id              Int           @id @default(autoincrement())
+  id              Int
   token           String        @unique
   expiresAt       DateTime
   used            Boolean       @default(false)
-  usedByEmail     String?       // email do usuário que utilizou o token
+  usedByEmail     String?
   createdAt       DateTime      @default(now())
   memberRequestId Int           @unique
-  memberRequest   MemberRequest @relation(fields: [memberRequestId], references: [id])
+  memberRequest   MemberRequest
 }
 
 enum MemberRequestStatus {

@@ -25,11 +25,11 @@ import AdminDashboard from "./admin/page";
 import MemberRequestForm from "./form/page";
 
 // Components
-import { Button } from "../components/button";
-import { Input } from "../components/input";
-import { Navbar } from "../components/navbar";
-import { Paragraph } from "../components/paragraph";
-import { Title } from "../components/title";
+import { Button } from "../components/button/button";
+import { Input } from "../components/input/input";
+import { Navbar } from "../components/navbar/navbar";
+import { Paragraph } from "../components/paragraph/paragraph";
+import { Title } from "../components/title/title";
 
 export default function HomePage(): JSX.Element | null {
   const router: AppRouterInstance = useRouter();

@@ -1,7 +1,7 @@
 // Libraries
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 
 // Models
 import { User } from "../models/user.model";
@@ -21,11 +21,11 @@ const findUserByCredentials = async (username: string, email: string): Promise<U
 
 // Hash user password
 const hashPassword = (password: string): Promise<string> =>
-  bcrypt.hash(password, 10);
+  bcryptjs.hash(password, 10);
 
 // Compare plain password with hashed one
 const validatePassword = (plain: string, hash: string): Promise<boolean> =>
-  bcrypt.compare(plain, hash);
+  bcryptjs.compare(plain, hash);
 
 // Register a new user
 export const registerUser = async (

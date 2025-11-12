@@ -18,7 +18,7 @@ import {
 import { useUserStore } from "../../store/userStore";
 
 // Components
-import { Title } from "../../components/title";
+import { Title } from "../../components/title/title";
 
 export default function StatsPage(): JSX.Element {
   const router: AppRouterInstance = useRouter();

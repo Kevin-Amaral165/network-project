@@ -84,19 +84,35 @@ ADM -->|Gerencia membros, finanças e relatórios| B
 
 ## 4. Estrutura de Componentes (Frontend)
 ```text
-src/
-├─ components/
-│  ├─ forms/
-│  │  └─ IntentionForm.tsx
-│  ├─ dashboard/
-│  └─ tables/
-├─ pages/
-│  ├─ index.tsx
-│  ├─ intentions/new.tsx
-│  ├─ members/index.tsx
-│  └─ dashboard/finance.tsx
-├─ contexts/
-└─ services/api.ts
+  src/
+  ├─ app/
+  │  ├─ admin/
+  │  │  └─ page.tsx
+  │  ├─ form/
+  │  │  └─ page.tsx
+  │  ├─ invitation/
+  │  ├─ invitations/
+  │  ├─ login/
+  │  ├─ register/
+  │  └─ stats/
+  ├─ components/
+  │  ├─ button/
+  │  │  ├─ button.tsx
+  │  │  └─ button.test.tsx
+  │  ├─ input/
+  │  ├─ navbar/
+  │  ├─ paragraph/
+  │  ├─ table/
+  │  └─ title/
+  ├─ hooks/
+  │  ├─ withAuth.tsx
+  │  └─ withAuth.test.tsx
+  ├─ store/
+  │  ├─ userStore.ts
+  │  └─ userStore.test.tsx
+  ├─ globals.css
+  ├─ layout.tsx
+  └─ page.tsx
 ```
 - UI: Ant Design (Forms, Tables, Modals, Buttons, Inputs).  
 - Estado: Context API (Auth) + Zustand para dashboards complexos.  
@@ -148,7 +164,7 @@ src/
 
 ## 7. Segurança e Boas Práticas
 - Autenticação: JWT (access + refresh), armazenar refresh em HttpOnly cookie.  
-- Senhas: bcrypt.  
+- Senhas: bcryptjs.  
 - Validação: Zod para request bodies.  
 - Proteções: Helmet, CORS whitelist, rate-limit.  
 - Logs: Winston/Pino; métricas: Prometheus/Grafana.
@@ -160,6 +176,8 @@ src/
 - Frontend: Jest + React Testing Library.  
 - Integração: Supertest para endpoints.  
 - CI: rodar testes e lint antes de merge (GitHub Actions).
+
+  > Observação: Os testes das páginas principais do frontend serão realizados futuramente utilizando testes end-to-end (E2E) cypress
 
 ---
 

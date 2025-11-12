@@ -6,10 +6,15 @@ import { useRouter, useParams } from "next/navigation";
 
 // Libraries
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { Modal, Spin, Form, message } from "antd";
+import {
+  Modal,
+  Spin,
+  Form,
+  message,
+} from "antd";
 
 // Components
-import { Input } from "../../../components/input";
+import { Input } from "../../../components/input/input";
 
 export default function InvitationTokenPage(): JSX.Element {
   const router: AppRouterInstance = useRouter();
@@ -27,8 +32,6 @@ export default function InvitationTokenPage(): JSX.Element {
 
   const handleFinish = async (): Promise<void> => {
     try {
-      const values = await form.validateFields();
-
       alert("Registro concluído com sucesso!");
 
       setModalOpen(false);
