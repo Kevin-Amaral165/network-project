@@ -14,16 +14,16 @@ A plataforma conecta membros de grupos de networking, permitindo gestão de part
 graph TD
 
 %% --- Usuário e Frontend ---
-U[Usuário / Navegador] -->|HTTP/HTTPS| A[Frontend - Next.js (React + Ant Design)]
+U[Usuário / Navegador] -->|HTTP/HTTPS| A[Frontend - Next.js e React]
 
 %% --- Comunicação Front-Back ---
-A -->|API REST / JSON| B[Backend - Node.js (Express + MVC)]
+A -->|API REST / JSON| B[Backend - Node.js Express MVC]
 
 %% --- Camadas Internas do Backend ---
-subgraph B["Backend (Camadas)"]
-  B1[Controller Layer<br/>Rotas e validação]
-  B2[Service Layer<br/>Regras de negócio]
-  B3[Model Layer<br/>ORM - Prisma / Sequelize]
+subgraph B["Backend - Camadas"]
+  B1[Controller Layer - Rotas e Validação]
+  B2[Service Layer - Regras de Negócio]
+  B3[Model Layer - ORM (Prisma ou Sequelize)]
   B1 --> B2 --> B3
 end
 
@@ -34,11 +34,11 @@ B3 -->|SQL Queries| C[(PostgreSQL Database)]
 B2 --> R[(Redis - Cache e Sessões)]
 
 %% --- Autenticação e Segurança ---
-B1 --> T[JWT Auth / Middleware de Segurança]
+B1 --> T[JWT Auth e Middleware de Segurança]
 
 %% --- Integrações externas ---
-B2 --> D[Serviços Externos<br/>(Email, Gateway de Pagamento)]
-B2 --> L[Logger / Monitoramento<br/>(Winston, Grafana, Prometheus)]
+B2 --> D[Serviços Externos - Email e Pagamentos]
+B2 --> L[Logger e Monitoramento - Winston e Grafana]
 
 %% --- Painel Administrativo ---
 A -->|Rotas protegidas| ADM[Área Administrativa / Dashboard]
@@ -46,6 +46,7 @@ A -->|Rotas protegidas| ADM[Área Administrativa / Dashboard]
 %% --- Conexões e Fluxo ---
 U -->|Acessa via browser| A
 ADM -->|Gerencia membros, finanças e relatórios| B
+
 ```
 
 ---
