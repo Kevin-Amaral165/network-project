@@ -29,60 +29,21 @@ O Docker Compose utiliza um arquivo `.env` na raiz do projeto (`network-project`
 Crie um arquivo chamado `.env` na raiz do diretório `network-project` e adicione o seguinte conteúdo a ele:
 
 ```env
-    # =========================================
-    # 🔹 CONFIGURAÇÕES DO BANCO DE DADOS
-    # =========================================
-
-    # Credenciais básicas do Postgres
+    # Banco de Dados
     POSTGRES_USER=postgres
     POSTGRES_PASSWORD=postgres
     POSTGRES_DB=network_db
 
-    # ---------------------------------------------------------
-    # 🔸 MODO DOCKER:
-    # Quando o projeto roda dentro dos containers,
-    # o host do banco é o nome do serviço definido no docker-compose ("db").
-    # ---------------------------------------------------------
+    # Docker (host = db)
     DATABASE_URL=postgresql://postgres:postgres@db:5432/network_db?schema=public
 
-    # ---------------------------------------------------------
-    # 🔸 MODO LOCAL:
-    # Quando você roda o backend direto pelo Node (fora do Docker),
-    # o host do banco deve ser localhost (ou 127.0.0.1).
-    # Descomente a linha abaixo para usar localmente:
-    # ---------------------------------------------------------
-    # DATABASE_URL=postgresql://postgres:postgres@localhost:5432/network_db?schema=public
-
-
-    # =========================================
-    # 🔹 CONFIGURAÇÕES DO BACKEND (Node.js)
-    # =========================================
-
-    # Porta que o servidor Express/Nest/Next API vai rodar
+    # Backend
     PORT=3001
-
-    # Chave secreta usada para assinar tokens JWT
     JWT_SECRET=minha_chave_secreta
 
-
-    # =========================================
-    # 🔹 CONFIGURAÇÕES DO FRONTEND (Next.js)
-    # =========================================
-
-    # ---------------------------------------------------------
-    # 🔸 MODO DOCKER:
-    # Dentro dos containers, o frontend acessa o backend
-    # pelo nome do serviço definido no docker-compose ("backend").
-    # ---------------------------------------------------------
+    # Frontend
     NEXT_PUBLIC_API_URL=http://backend:3001/api
-
-    # ---------------------------------------------------------
-    # 🔸 MODO LOCAL:
-    # Quando você roda o frontend com "npm run dev" fora do Docker,
-    # o backend é acessado em http://localhost:3001.
-    # Descomente a linha abaixo se rodar localmente:
-    # ---------------------------------------------------------
-    # NEXT_PUBLIC_API_URL=http://localhost:3001/api
+    # Local: http://localhost:3001/api
 ```
 
 **Importante:** O `DATABASE_URL` deve usar `db` como hostname, pois é o nome do serviço do banco de dados definido no `docker-compose.yml`.
