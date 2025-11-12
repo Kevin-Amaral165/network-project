@@ -14,7 +14,7 @@ import {
 } from "antd";
 
 // Components
-import { Input } from "../../../components/input";
+import { Input } from "../../../components/input/input";
 
 export default function InvitationTokenPage(): JSX.Element {
   const router: AppRouterInstance = useRouter();

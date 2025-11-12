@@ -10,7 +10,7 @@ import { Modal, Table, message } from "antd";
 import { useUserStore } from "@/src/store/userStore";
 
 // Components
-import { Button } from "../../components/button";
+import { Button } from "../../components/button/button";
 
 interface AdminDashboardProps {
   visible: boolean;

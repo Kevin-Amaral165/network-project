@@ -7,8 +7,8 @@ import { JSX, useState } from "react";
 import {Modal, Form, message } from "antd";
 
 // Components
-import { Button } from "../../components/button";
-import { Input } from "../../components/input";
+import { Button } from "../../components/button/button";
+import { Input } from "../../components/input/input";
 
 interface MemberRequestFormProps {
   visible: boolean;

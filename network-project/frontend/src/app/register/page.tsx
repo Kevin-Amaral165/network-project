@@ -11,9 +11,9 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 import { useUserStore } from "../../store/userStore";
 
 // Components
-import { Button } from "../../components/button";
-import { Input } from "../../components/input";
-import { Title } from "../../components/title";
+import { Button } from "../../components/button/button";
+import { Input } from "../../components/input/input";
+import { Title } from "../../components/title/title";
 
 export default function RegisterPage(): JSX.Element {
   /** ****************************************** STATE ******************************************* */

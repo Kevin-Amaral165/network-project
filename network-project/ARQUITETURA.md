@@ -148,7 +148,7 @@ src/
 
 ## 7. Segurança e Boas Práticas
 - Autenticação: JWT (access + refresh), armazenar refresh em HttpOnly cookie.  
-- Senhas: bcrypt.  
+- Senhas: bcryptjs.  
 - Validação: Zod para request bodies.  
 - Proteções: Helmet, CORS whitelist, rate-limit.  
 - Logs: Winston/Pino; métricas: Prometheus/Grafana.

@@ -1,7 +1,7 @@
 # Dockerfile do backend
 FROM node:20-bullseye-slim
 
-# Instala dependências do sistema necessárias para Prisma e bcrypt
+# Instala dependências do sistema necessárias para Prisma e bcryptjs
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libc6-dev \
