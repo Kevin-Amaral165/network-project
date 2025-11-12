@@ -23,7 +23,7 @@ A -->|API REST / JSON| B[Backend - Node.js Express MVC]
 subgraph B["Backend - Camadas"]
   B1[Controller Layer - Rotas e Validação]
   B2[Service Layer - Regras de Negócio]
-  B3[Model Layer - ORM (Prisma ou Sequelize)]
+  B3[Model Layer - ORM \(Prisma ou Sequelize\)]
   B1 --> B2 --> B3
 end
 
@@ -46,6 +46,7 @@ A -->|Rotas protegidas| ADM[Área Administrativa / Dashboard]
 %% --- Conexões e Fluxo ---
 U -->|Acessa via browser| A
 ADM -->|Gerencia membros, finanças e relatórios| B
+
 
 ```
 
